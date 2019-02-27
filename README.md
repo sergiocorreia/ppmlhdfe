@@ -15,7 +15,7 @@ ADD BIBTEX FILES HERE
 
 ## References
 
-Quick information on the command can be glanced from the [help file](http://scorreia.com/software/ppmlhdfe/help-ppmlhdfe.html).
+Quick information on the command can be glanced from the [help file](http://scorreia.com/help/ppmlhdfe.html).
 
 For detailed information:
 
