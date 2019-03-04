@@ -1,0 +1,14 @@
+v 3
+
+d ppmlhdfe PPML/Poisson Regression with High-Dimensional Fixed Effects (Multi-Way Fixed Effects)
+
+f ppmlhdfe.ado
+f ppmlhdfe_header.ado
+f ppmlhdfe_p.ado
+
+f ppmlhdfe.mata
+f ppmlhdfe_functions.mata
+f ppmlhdfe_separation_simplex.mata
+f ppmlhdfe_separation_relu.mata
+
+f ppmlhdfe.sthlp
