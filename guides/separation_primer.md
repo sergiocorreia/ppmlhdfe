@@ -111,7 +111,7 @@ ppmlhdfe y x*, tagsep(sep) zvar(z) r2
 Now that we have seen how this issue arise, we will briefly discuss how `ppmlhdfe` actually detects separated observations. Also, note that the separation problem is *particularly pernicious* in specifications with many fixed effects (because there are many more possible linear combinations that can lead to separation), so a lot of the extra care is to ensure that all separated observations are detected.
 
 
-## How does `ppmlhdfe` actually finds the separated observations?
+## How does `ppmlhdfe` actually find the separated observations?
 
 By default, `ppmlhdfe` uses four methods to identify separated observations. However, after reading the discussion below and seeing their pros and cons, you can choose to only including some of the methods, thus slightly increasing the speed of the command.
 
