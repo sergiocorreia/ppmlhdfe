@@ -274,7 +274,7 @@ ppmlhdfe y, a(id1 id2) sep(mu) mu_tol(1e-5)
 
 The iteration takes a while to run (18 iterations, compared to 6 for the IR method), but the the separated observation is indeed detected, in iteration 15.
 
-However, this method is fragile, specially when the dependent variable has a skewed distribution. For instance, this method would fail to detect separation if we replace `mu_tol(1e-5)` with `mu_tol(1e-6)` (the default).
+However, this method is fragile, especially when the dependent variable has a skewed distribution. For instance, this method would fail to detect separation if we replace `mu_tol(1e-5)` with `mu_tol(1e-6)` (the default).
 
 Alternatively, also depending on its tolerance, the μ method might be too aggressive and incorrectly drop observations. In the example below we we add three observations to the dataset, so the third observation is no longer separated. As a consequence, the `sep(mu)` method might converge extremely slowly (in 115 iterations), *and* to the wrong solution (incorrectly dropping one observation that is not separated), depending on tolerance for μ:
 
