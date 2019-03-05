@@ -267,14 +267,16 @@ input byte(y id1 id2)
 1 2 2
 end
 
-ppmlhdfe y, a(id1 id2) sep(mu)
+ppmlhdfe y, a(id1 id2) sep(mu) mu_tol(1e-5)
 ```
 
 <p align="center"><img src="./figures/primer_sep_mu.png" alt="screenshot-mu" width="80%"/></p>
 
 The iteration takes a while to run (18 iterations, compared to 6 for the IR method), but the the separated observation is indeed detected, in iteration 15.
 
-However, this method is fragile, specially when the dependent variable has a skewed distribution. In the example below, we we add three observations to the dataset, so the third observation is no longer separated. As a consequence, the `sep(mu)` method now converges extremely slowly (in 115 iterations), *and* to the wrong solution (incorrectly dropping one observation that is not separated):
+However, this method is fragile, specially when the dependent variable has a skewed distribution. For instance, this method would fail to detect separation if we replace `mu_tol(1e-5)` with `mu_tol(1e-6)` (the default).
+
+Alternatively, also depending on its tolerance, the μ method might be too aggressive and incorrectly drop observations. In the example below we we add three observations to the dataset, so the third observation is no longer separated. As a consequence, the `sep(mu)` method might converge extremely slowly (in 115 iterations), *and* to the wrong solution (incorrectly dropping one observation that is not separated), depending on tolerance for μ:
 
 ```stata
 clear
@@ -289,9 +291,13 @@ input double(y id1 id2)
 1e-6 2 1
 end
 
-ppmlhdfe y, a(id1 id2) sep(mu) // takes a while to converge, and erroneously drops one obs.
-ppmlhdfe y, a(id1 id2)  sep(ir) // converges quickly and to the correct number of observations
+ppmlhdfe y, a(id1 id2) sep(mu) mu_tol(1e-2) // takes a while to converge, and erroneously drops one obs.
+
+ppmlhdfe y, a(id1 id2) sep(ir) // converges quickly and to the correct number of observations
+ppmlhdfe y, a(id1 id2) sep(mu) mu_tol(1e-6) // converges quickly and to the correct number of observations
 ```
+
+Nonetheless, we selected very conservative default values for `mu_tol()`, and also added some [extra checks](undocumented.md#mu-separation-options) for highly skewed data, so in practical scenarios the μ method is quite unlikely to fail.
 
 ### Recap
 
