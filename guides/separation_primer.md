@@ -113,7 +113,7 @@ Now that we have seen how this issue arise, we will briefly discuss how `ppmlhdf
 
 ## How does `ppmlhdfe` actually find the separated observations?
 
-By default, `ppmlhdfe` uses four methods to identify separated observations. However, after reading the discussion below and seeing their pros and cons, you can choose to only including some of the methods, thus slightly increasing the speed of the command.
+By default, `ppmlhdfe` uses four methods to identify separated observations. However, after reading the discussion below and seeing their pros and cons, you can choose to only include some of the methods, thus slightly increasing the speed of the command.
 
 
 ### `ppmlhdfe, separation(fe)`
