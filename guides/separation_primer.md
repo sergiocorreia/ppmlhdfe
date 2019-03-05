@@ -51,7 +51,7 @@ As explained in the paper, separation occurs when we can find a linear combinati
 
 If you can find a z where this occurs, then the observations where `z>0` are *separated* and there will be at least one estimate with infinite values that makes these observations have a perfect fit.
 
-Moreover, `z` acts a a "certificate of separation", because we can regress it through least-squares against the regressors `X`, and if we observe a perfect fit (R2=1.0), then we can verify that the `z>0` observations are indeed separated.
+Moreover, `z` acts as a "certificate of separation", because we can regress it through least-squares against the regressors `X`, and if we observe a perfect fit (R2=1.0), then we can verify that the `z>0` observations are indeed separated.
 
 Notice also that this is a significantly stronger result than the one shown in  Santos Silva and Tenreyo (2010), where only condition #1 is presented. Indeed, by combining these two conditions, we actually arrive at a "sharp criterion" for detecting separation.
 
