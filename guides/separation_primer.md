@@ -28,7 +28,7 @@ Note that the value of `b` can only affect the residuals of the first two observ
 
 In terms of the log likelihood, it is straightforward to verify that the log-likelihood contributions of the first two observations take their maximum possible value when `b=-∞`: `LL_i = -exp(-∞) + (-∞)(0) - 0 = 0`.
 
-Since -∞ is not part of the real values (only of the [extended reals](https://en.wikipedia.org/wiki/Extended_real_number_line)), this means that maximum likelihood estimates will not exist. Moreover, trying to [estimate this in any modern statistical package](separation_benchmark.md) (Stata, R, Python, Julia, etc) can result in all kinds of issues. For instance, Stata's `poisson` command does converge, but to an arbitrary low negative sign (-18.8 in this case):
+Since -∞ is not part of the real values (only of the [extended reals](https://en.wikipedia.org/wiki/Extended_real_number_line)), this means that maximum likelihood estimates will not exist. Moreover, [as our own benchmarks show](separation_benchmark.md), trying to estimate this in any modern statistical package (Stata, R, Python, Julia, etc) can result in all kinds of issues. For instance, Stata's `poisson` command does converge, but to an arbitrary low negative sign (-18.8 in this case):
 
 ```stata
 clear
