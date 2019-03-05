@@ -5,7 +5,7 @@
 
 *(This guide is an abridged version of [Verifying the existence of maximum likelihood estimates for generalized linear models](http://scorreia.com/research/separation.pdf); please see the paper for a more detailed explanation)*
 
-As noted in Santos Silva and Tenreyo ([2010](https://www.sciencedirect.com/science/article/pii/S0165176510000832), [2011](https://www.stata-journal.com/article.html?article=st0225)), maximum likelihood estimates of Poisson models might not exist, due to the problem known as "statistical separation". In practice, this is seen in regression estimates that do not converge, or even worst, converge to incorrect estimates.
+As noted in Santos Silva and Tenreyo ([2010](https://www.sciencedirect.com/science/article/pii/S0165176510000832), [2011](https://www.stata-journal.com/article.html?article=st0225)), maximum likelihood estimates of Poisson models might not exist, due to the problem known as "statistical separation". In practice, this is seen in regression estimates that do not converge or, even worse, converge to incorrect estimates.
 
 ## Why might ML estimates not exist?
 
