@@ -1,6 +1,6 @@
 # `ppmlhdfe`: Poisson pseudo-likelihood regression with multiple levels of fixed effects
 
-- Current version: ` 2.0.0 28feb2018`
+- Current version: ` 2.0.1 03mar2019`
 - Jump to: [`references`](#references) [`citation`](#citation) [`install`](#installation)
 
 **ppmlhdfe** is a Stata package that implements Poisson pseudo-maximum likelihood regressions (PPML) with multi-way fixed effects, as described in [Correia, Guimarães, Zylkin (2019a)](http://scorreia.com/research/ppmlhdfe.pdf). The estimator employed is robust to statistical separation and convergence issues, due to the procedures developed in [Correia, Guimarães, Zylkin (2019b)](http://scorreia.com/research/separation.pdf).
