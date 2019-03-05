@@ -190,7 +190,7 @@ input byte(y id1 id2)
 1 2 2
 end
 
-ppmlhdfe y, a(id1 id2) sep(relu)
+ppmlhdfe y, a(id1 id2) sep(ir)
 ```
 
 <p align="center"><img src="./figures/primer_sep_relu.png" alt="screenshot-relu" width="80%"/></p>
@@ -253,7 +253,7 @@ This method, first mentioned by Clarkson and Jennrich (1991), does a simple heur
 
 However, "very close to zero" is an arbitrary number, and thus a) if set too high then it might lead to false positives, and b) if set too low it might fail to detect some separated observations. Further, if there are separated observations then the IRLS iteration used by `ppmlhdfe` might converge extremely slowly, so it is not ideal to exclusively rely on this method.
 
-Thus, we agree with Clarkson and Jennrich in that this method is not very useful on its own. That said, if combined with a conservative tolerance (which we do), it can be useful as a back-stop method. Checking if μ is taking very low values has almost no speed cost and is trivial to implement, and thus it can be used to complement the existing methods.
+Thus, we agree with Clarkson and Jennrich in that this method is not very useful on its own. That said, if combined with a conservative tolerance (which we do), it can be useful as a back-stop method. Checking if μ is taking very low values after each iteration has almost no speed cost and is trivial to implement, and thus it can be used to complement the existing methods.
 
 Using the previous example, here we can see `sep(mu)` in action:
 
@@ -272,7 +272,7 @@ ppmlhdfe y, a(id1 id2) sep(mu)
 
 <p align="center"><img src="./figures/primer_sep_mu.png" alt="screenshot-mu" width="80%"/></p>
 
-The iteration takes a while to run (18 iterations, compared to 6 for the ReLU method), but the the separated observation is indeed detected, in iteration 15.
+The iteration takes a while to run (18 iterations, compared to 6 for the IR method), but the the separated observation is indeed detected, in iteration 15.
 
 However, this method is fragile, specially when the dependent variable has a skewed distribution. In the example below, we we add three observations to the dataset, so the third observation is no longer separated. As a consequence, the `sep(mu)` method now converges extremely slowly (in 115 iterations), *and* to the wrong solution (incorrectly dropping one observation that is not separated):
 
@@ -290,21 +290,21 @@ input double(y id1 id2)
 end
 
 ppmlhdfe y, a(id1 id2) sep(mu) // takes a while to converge, and erroneously drops one obs.
-ppmlhdfe y, a(id1 id2)  sep(relu) // converges quickly and to the correct number of observations
+ppmlhdfe y, a(id1 id2)  sep(ir) // converges quickly and to the correct number of observations
 ```
 
 ### Recap
 
 The table below summarizes our views on the pros and cons of each method.
 
-| Method  | Pro     | Con                                                                  |
-|---------|---------|----------------------------------------------------------------------|
-| fe      | Simple  | Only detects separation from a single category                       |
-| simplex | Robust  | Does not work for fixed effects                                      |
-| relu    | General | Slower, as each iteration involves computing weighted least squares  |
-| mu      | Fast    | Works poorly with skewed data                                        |
+| Method  | Pro     | Con                                                                                     |
+|---------|---------|-----------------------------------------------------------------------------------------|
+| fe      | Simple  | Only detects separation from a single category                                          |
+| simplex | Robust  | Does not work for fixed effects                                                         |
+| ir      | General | Slower for small problems, as each iteration involves computing weighted least squares  |
+| mu      | Fast    | Works poorly with skewed data; convergence may be slow                                  |
 
-For simple regressions without any fixed effects, the `sep(simplex)` method is a good choice, while for more complex regressions with many levels of fixed effects `sep(fe relu)` or `sep(fe simplex relu)` should work well. Optionally, the `mu` method can be added as a back-stop, and the user should also inspect the iteration log to see if there are very low values of mu.
+For simple regressions without any fixed effects, the `sep(simplex)` method is a good choice, while for more complex regressions with many levels of fixed effects `sep(fe ir)` or `sep(fe simplex ir)` should work well. Optionally, the `mu` method can be added as a back-stop, and the user should also inspect the iteration log to see if there are very low values of mu.
 
 
 ## "To Infinity and Beyond!"
@@ -358,4 +358,4 @@ mata: (vars, strofreal(directions))[idx, .]
 
 <p align="center"><img src="./figures/primer_geyer.png" alt="screenshot-poisson" width="60%"/></p>
 
-As we can see, we are able to recover Geyer's "direction of recession" by employing the ReLU algorithm, which has the added advantage of being easy to implement, and not requiring exact algebra routines.
+As we can see, we are able to recover Geyer's "direction of recession" by employing the IR algorithm, which has the added advantage of being easy to implement, and not requiring exact algebra routines.
