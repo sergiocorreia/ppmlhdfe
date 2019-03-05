@@ -312,6 +312,7 @@ The table below summarizes our views on the pros and cons of each method.
 
 For simple regressions without any fixed effects, the `sep(simplex)` method is a good choice, while for more complex regressions with many levels of fixed effects `sep(fe ir)` or `sep(fe simplex ir)` should work well. Optionally, the `mu` method can be added as a back-stop, and the user should also inspect the iteration log to see if there are very low values of mu.
 
+> To read more on separation, see the [separation benchmarks](https://github.com/sergiocorreia/ppmlhdfe/blob/master/guides/separation_benchmarks.md), as well as our [separation paper](http://scorreia.com/research/separation.pdf). For more information on `ppmlhdfe`, see the [help file](http://scorreia.com/help/ppmlhdfe.html), the list of [undocumented options](https://github.com/sergiocorreia/ppmlhdfe/blob/master/guides/undocumented.md), as well as our [`ppmlhdfe` paper](http://scorreia.com/research/ppmlhdfe.pdf).
 
 ## "To Infinity and Beyond!"
 
