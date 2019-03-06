@@ -14,7 +14,7 @@ Also, although we focus here on Poisson models, separation is an issue for most 
 )).
 
 
-## Stata packages
+## Stata packages 
 
 ### Lack of convergence
 
