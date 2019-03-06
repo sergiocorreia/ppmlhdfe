@@ -7,7 +7,7 @@
 
 As noted in Santos Silva and Tenreyo ([2010](https://www.sciencedirect.com/science/article/pii/S0165176510000832), [2011](https://www.stata-journal.com/article.html?article=st0225)), maximum likelihood estimates of Poisson models might not exist, due to the problem known as "statistical separation". In practice, this is seen in regression estimates that do not converge or, even worse, converge to incorrect estimates.
 
-## Why might ML estimates not exist?
+## Why might ML estimates not exist? 
 
 The log-likelihood function of Poisson models is `log L = Σ[-exp(Xb) + (Xb) y - log(y!)]`. If we denote the residuals as `e = y-exp(Xb)`, then its first order condition is `X'e=0` (same as with least squares, but with a different definition of residuals).
 
