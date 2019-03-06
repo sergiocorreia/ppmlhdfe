@@ -272,7 +272,7 @@ ppmlhdfe y, a(id1 id2) sep(mu) mu_tol(1e-5)
 
 <p align="center"><img src="./figures/primer_sep_mu.png" alt="screenshot-mu" width="80%"/></p>
 
-The iteration takes a while to run (18 iterations, compared to 6 for the IR method), but the the separated observation is indeed detected, in iteration 15.
+The iteration takes a while to run (18 iterations, compared to 6 for the IR method), but the separated observation is indeed detected, in iteration 15.
 
 However, this method is fragile, especially when the dependent variable has a skewed distribution. For instance, this method would fail to detect separation if we replace `mu_tol(1e-5)` with `mu_tol(1e-6)` (the default).
 
