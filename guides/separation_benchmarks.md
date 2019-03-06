@@ -379,8 +379,6 @@ ppmlhdfe y x1, a(i j) // drops 8 separated obs.
 gen z = 2 * (i==4) - 2 * (i==1) - 2 * (i==6) - 6 * (j==1) - 6 * (j==3) - 2 * (j==4)  - 1 * (j==5) + 8 // we can verify that the observations are indeed separated
 ```
 
-** Sergio: Can we add FENmlm to the R packages?
-
 ## Julia (v.1.1.0)
 
 The code below runs a GLM regression in Julia, with the data in [example1.csv](csv/example1.csv).
