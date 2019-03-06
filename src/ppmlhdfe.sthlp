@@ -1,5 +1,5 @@
 {smcl}
-{* *! version 2.0.1 03mar2019}{...}
+{* *! version 2.0.1 05mar2019}{...}
 {vieweralsosee "[R] poisson" "help poisson"}{...}
 {vieweralsosee "[R] xtpoisson" "help xtpoisson"}{...}
 {vieweralsosee "[R] glm" "help glm"}{...}
@@ -16,7 +16,6 @@
 {viewerjumpto "Postestimation Syntax" "ppmlhdfe##postestimation"}{...}
 {viewerjumpto "Citation" "ppmlhdfe##citation"}{...}
 {viewerjumpto "Authors" "ppmlhdfe##contact"}{...}
-{viewerjumpto "Acknowledgements" "ppmlhdfe##acknowledgements"}{...}
 {viewerjumpto "Support and updates" "ppmlhdfe##support"}{...}
 {viewerjumpto "Stored results" "ppmlhdfe##results"}{...}
 {title:Title}
@@ -166,7 +165,6 @@ while {cmd:use_exact_solver(1)} will run avoid using a faster version of the lea
 {pstd}Also the three standard {help estat} subcommands are allowed: {cmd:estat ic}, {cmd:estat summarize}, and {cmd:estat vce}.
 
 
-
 {marker contact}{...}
 {title:Authors}
 
@@ -187,25 +185,17 @@ Email: {browse "mailto:tzylkin@richmond.edu":tzylkin@richmond.edu}
 {p_end}
 
 
-
 {marker citation}{...}
 {title:Citation}
 
 {pstd}
-Correia, S., P. Guimaraes, and T. Zylkin. 2019a.
-{browse "http://scorreia.com/research/separation.pdf":Verifying the Existence of Maximum Likelihood Estimates for Generalized Linear Models}.
-Working paper.
+Sergio Correia, Paulo Guimarães, Thomas Zylkin: "ppmlhdfe: Fast Poisson Estimation with High-Dimensional Fixed Effects", 2019; {browse "http://arxiv.org/abs/1903.01690":arXiv:1903.01690}.
 
 {pstd}
-Correia, S., P. Guimaraes, and T. Zylkin. 2019b.
-{browse "http://scorreia.com/research/ppmlhdfe.pdf":ppmlhdfe: Fast Poisson Estimation with High-Dimensional Fixed Effects}.
-Working paper.
+Sergio Correia, Paulo Guimarães, Thomas Zylkin: "Verifying the existence of maximum likelihood estimates for generalized linear models", 2019; {browse "http://arxiv.org/abs/1903.01633":arXiv:1903.01633}.
 
-
-{marker acknowledgements}{...}
-{title:Acknowledgements}
-
-{pstd}[TBD]
+{pmore}
+>> BibTeX text available {browse "https://github.com/sergiocorreia/ppmlhdfe/blob/master/README.md#citation":here} <<
 
 
 {marker support}{...}

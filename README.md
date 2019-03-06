@@ -10,8 +10,36 @@
 
 ## Citation
 
+#### Text
+
+<ul>
+<li>
+Sergio Correia, Paulo Guimarães, Thomas Zylkin: “Verifying the existence of maximum likelihood estimates for generalized linear models”, 2019; <a href='http://arxiv.org/abs/1903.01633'>arXiv:1903.01633</a>.
+</li>
+</ul>
+
+<ul>
+<li>
+Sergio Correia, Paulo Guimarães, Thomas Zylkin: “ppmlhdfe: Fast Poisson Estimation with High-Dimensional Fixed Effects”, 2019; <a href='http://arxiv.org/abs/1903.01690'>arXiv:1903.01690</a>.
+</li>
+</ul>
+
+#### Bibtex
+
 ```bibtex
-ADD BIBTEX FILES HERE
+@Misc{1903.01633,
+  Author = {Sergio Correia and Paulo Guimarães and Thomas Zylkin},
+  Title = {Verifying the existence of maximum likelihood estimates for generalized linear models},
+  Year = {2019},
+  Eprint = {arXiv:1903.01633},
+}
+
+@Misc{1903.01690,
+  Author = {Sergio Correia and Paulo Guimarães and Thomas Zylkin},
+  Title = {{ppmlhdfe: Fast Poisson Estimation with High-Dimensional Fixed Effects}},
+  Year = {2019},
+  Eprint = {arXiv:1903.01690},
+}
 ```
 
 
