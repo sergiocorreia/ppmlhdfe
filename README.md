@@ -83,6 +83,9 @@ reghdfe, compile
 * Check versions
 ppmlhdfe, version
 
+* Clear programs already in memory
+program drop _all
+
 * Test program
 sysuse auto, clear
 reghdfe price weight, a(turn)
