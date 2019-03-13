@@ -61,7 +61,30 @@ For introductory guides on separation, and on how `ppmlhdfe` internally address 
 
 ## Installation
 
-`ppmlhdfe` requires the latest versions of [`ftools`](https://github.com/sergiocorreia/ftools) and [`reghdfe`](https://github.com/sergiocorreia/reghdfe):
+`ppmlhdfe` requires the latest versions of [`ftools`](https://github.com/sergiocorreia/ftools) and [`reghdfe`](https://github.com/sergiocorreia/reghdfe).
+
+To install stable versions from SSC:
+
+```stata
+cap ado uninstall ftools
+cap ado uninstall reghdfe
+cap ado uninstall ppmlhdfe
+
+ssc install ftools
+ssc install reghdfe
+ssc install ppmlhdfe
+
+clear all
+ftools, compile
+reghdfe, compile
+
+* Test program
+sysuse auto, clear
+reghdfe price weight, a(turn)
+ppmlhdfe price weight, a(turn)
+```
+
+To install the latest versions from Github:
 
 ```stata
 * Install ftools
@@ -76,7 +99,7 @@ net install reghdfe, from("https://raw.githubusercontent.com/sergiocorreia/reghd
 cap ado uninstall ppmlhdfe
 net install ppmlhdfe, from("https://raw.githubusercontent.com/sergiocorreia/ppmlhdfe/master/src/")
 
-* (optional) create compiled files
+* Create compiled files
 ftools, compile
 reghdfe, compile
 
