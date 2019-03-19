@@ -1,7 +1,7 @@
 # Undocumented options of ppmlhdfe
 
 - Jump to: [Readme](https://github.com/sergiocorreia/ppmlhdfe/blob/master/Readme.md) | [`ppmlhdfe` Paper](http://scorreia.com/research/ppmlhdfe.pdf) | [Separation Paper](http://scorreia.com/research/separation.pdf) | [Help File](http://scorreia.com/help/ppmlhdfe.html) | [Separation Primer](https://github.com/sergiocorreia/ppmlhdfe/blob/master/guides/separation_primer.md) | [Separation Benchmarks](https://github.com/sergiocorreia/ppmlhdfe/blob/master/guides/separation_benchmarks.md) | [Undocumented Options](https://github.com/sergiocorreia/ppmlhdfe/blob/master/guides/undocumented.md)
-- Sections: [`reghdfe` internals](#options-related-to-reghdfe-internals) | [Initialization](#initialization-options) | [IRLS](#irls-options) | [Simplex](#simplex-separation-options) | [ReLU](#ir-relu-separation-options) | [Mu](#mu-separation-options) | [Display](#misc-display-options) | [Margins and esttab](#esttab-and-margins-options)
+- Sections: [`reghdfe` internals](#options-related-to-reghdfe-internals) | [Initialization](#initialization-options) | [IRLS](#irls-options) | [Simplex](#simplex-separation-options) | [ReLU](#irrelu-separation-options) | [Mu](#mu-separation-options) | [Display](#misc-display-options) | [Margins and esttab](#esttab-and-margins-options)
 
 This guide describes advanced and internal `ppmlhdfe` options.
 
