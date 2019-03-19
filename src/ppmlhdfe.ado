@@ -97,7 +97,7 @@ program Reload
 	di as text _n  _n "{bf:ppmlhdfe: updating self}"
 	di as text "{hline 64}"
 	cap ado uninstall ppmlhdfe
-	net install ppmlhdfe, from("c:\git\ppml_hdfe_demo\src") // TODO: rename path to "ppmlhdfe"
+	net install ppmlhdfe, from("C:/Git/ppmlhdfe/src")
 	di as text "{hline 64}"
 	di as text _n "{bf:Note:} You need to run {stata program drop _all} now."
 end
