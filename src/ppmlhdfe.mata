@@ -301,6 +301,12 @@ class GLM
 
 	assert(++init_step == 3)
 
+	// Abort if there are no boundary observations (i.e. y > 0 always)
+	if (all(y :> 0)) {
+		if (verbose > 0) printf("{txt}\n $$ No boundary observations (y=0), no separation tests required.\n")
+		return
+	}
+
 	// Simplex method
 	check_separation = anyof(separation, "simplex") & k
 	if (check_separation) {
