@@ -1,4 +1,4 @@
-*! version 2.0.2 26mar2019
+*! version 2.1.0 04apr2019
 *! Authors: Sergio Correia, Paulo Guimarães, Thomas Zylkin
 *! URL: https://github.com/sergiocorreia/ppmlhdfe
 

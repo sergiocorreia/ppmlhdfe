@@ -72,6 +72,11 @@ class GLM
 	`Integer'				min_ok // Minimum number of "ok" iterations before declaring convergence
 	`Integer'				maxiter // Maximum number of iterations in IRLS step
 
+	// Step-halving
+	`Boolean'				use_step_halving
+	`Real'					step_halving_memory
+	`Iter'					max_step_halving
+
 	// Separation-related parameters
 	`Integer'				num_separated
 	`Real'					mu_tol
@@ -114,6 +119,9 @@ class GLM
 	standardize_data = 1
 	use_exact_solver = 0
 	use_exact_partial = 0
+	use_step_halving = 0
+	step_halving_memory = 0.9
+	max_step_halving = 2
 	accel_start = 2
 	accel_skip = 5
 	tolerance = 1e-8
@@ -405,7 +413,7 @@ class GLM
 	}
 
 	if (verbose > -1 & log) printf("{txt}{hline 108}\n")
-	if (verbose > -1 & log) printf("{txt}(legend: {res}p{txt}: exact partial-out   {res}s{txt}: exact solver   {res}o{txt}: epsilon below tolerance)\n")
+	if (verbose > -1 & log) printf("{txt}(legend: {res}p{txt}: exact partial-out   {res}s{txt}: exact solver   {res}h{txt}: step-halving   {res}o{txt}: epsilon below tolerance)\n")
 	if (verbose > -1) printf("{txt}Converged in %g iterations and %g HDFE sub-iterations (tol =%4.0e)\n", iter, subiter, tolerance)
 	st_local("ic", strofreal(iter))
 	st_local("ic2", strofreal(subiter))
@@ -543,7 +551,7 @@ class GLM
 // (The cost is of course a slower computation for y/mu)
 
 `Boolean' GLM::inner_irls(`Variable' mu, // Initial value
-                          `Variable' eta, // Will be returned (only used in extreme cases)
+                          `Variable' eta, // Will be returned (to compute log-likelihood)
                           `Boolean' check_separation,
         				  `Variables' data, // Return transformed data (y,x)
         				  `Variable' z, // Return working depvar; only used when saving FEs
@@ -551,16 +559,17 @@ class GLM
         				  `Real' eps, // Return eps; the convergence criteria
         				  `Vector' separated_obs)
 {
-	`Integer'		ok, N_sep
-	`Variable'		separation_mask, z_last, irls_w, resid // eta, 
+	`Integer'		ok, N_sep, col, num_step_halving
+	`Variable'		separation_mask, z_last, irls_w, resid, old_eta
 	`Vector'		zero_sample
 	`Vector'		b
 	`Real'			log_septol, old_deviance, delta_deviance, alt_tol, highest_inner_tol, denom_eps, min_eta, adjusted_log_septol
-	`Boolean'		iter_fast_partial, iter_fast_solver
+	`Boolean'		iter_fast_partial, iter_fast_solver, iter_step_halving
 	`String'		iter_text
 
 	// Sanity checks
 	assert(k == cols(x))
+	assert(0 < step_halving_memory & step_halving_memory < 1)
 
 	// WARNING:
 	// If the initial value of MU is too close to zero, then 
@@ -575,7 +584,7 @@ class GLM
 	eta = log(mu)
 	HDFE.load_weights("aweight", "<placeholder for mu>", y, 1) // y is just a placeholder; we'll place (true_w*mu) later
 	eps = deviance  = .
-	ok = N_sep = 0
+	ok = N_sep = iter_step_halving = num_step_halving = 0
 	separation_mask = z = z_last = J(rows(eta), 1, 0)
 	zero_sample = selectindex(y :== 0)
 	if (verbose > 0) {
@@ -586,8 +595,8 @@ class GLM
 	// Iterate
 	while ((ok < min_ok) & (++iter <= maxiter)) {
 
-		iter_fast_partial = !use_exact_partial & (iter >= accel_start) & mod(iter - accel_start + 1, accel_skip) & (eps > 11 * tolerance)
-		iter_fast_solver = !use_exact_solver & k & (HDFE.tolerance > tolerance * 11)
+		iter_fast_partial = !iter_step_halving & !use_exact_partial & (iter >= accel_start) & mod(iter - accel_start + 1, accel_skip) & (eps > 11 * tolerance)
+		iter_fast_solver  = !iter_step_halving & !use_exact_solver  & k & (HDFE.tolerance > tolerance * 11)
 
 		// (a) Update weights: W = μ
 		if (verbose > 1) printf("{txt} @@@ HDFE.update_sorted_weights()\n")
@@ -646,6 +655,7 @@ class GLM
 		if (verbose > 1) printf("{txt} @@@ updating eta/mu/deviance\n")
 
 		// (e) Update η = z - resid = xβ + d
+		if (!iter_step_halving) swap(old_eta, eta) // A faster alternative to "old_eta = eta"
 		if (rows(offset)) {
 			eta = z - resid + offset
 		}
@@ -715,21 +725,62 @@ class GLM
 					ok = ok + 1
 				}
 			}
+			else if (use_step_halving & (delta_deviance < 0) & (num_step_halving < max_step_halving)) {
+				// Run step-halving AFTER checking for convergence
+				eta = step_halving_memory * old_eta + (1 - step_halving_memory) * eta
+				if (num_step_halving > 0) update_mask(eta, selectindex(eta:<-10), -10) // If the first step halving was not enough, clip very low values of eta
+				mu = exp(eta)
+				iter_step_halving = 1
+				ok = 0
+				num_step_halving = num_step_halving + 1
+			}
+			else {
+				iter_step_halving = 0
+				num_step_halving = 0
+			}
+
 		}
 
 		// Progress report
 		if (verbose > -1 & log) {
-			iter_text = sprintf("{txt}Iteration %g:", iter)
-			iter_text = iter_text + sprintf("{txt}{col 16}deviance = {res}%-10.0e", deviance * stdev_y)
-			if (iter > 1) iter_text = iter_text + sprintf("{col 38}{txt}eps = {res}%-9.6e{txt}", eps)
-			iter_text = iter_text + sprintf("{col 53}{txt} itol ={res}%5.0e", HDFE.tolerance)
-			iter_text = iter_text + sprintf("{col 69}{txt} subiters = {res}%g", HDFE.iteration_count)
+			col = 0
+
+			iter_text = sprintf("{txt}{col %2.0f}Iteration %g:", col, iter)
+			col = col + 16
+
+			iter_text = iter_text + sprintf("{txt}{col %2.0f}deviance = {res}%-11.5e", col, deviance * stdev_y)
+			col = col + 23
+
+			iter_text = iter_text + sprintf("{col %2.0f}{txt}eps = {res}%-9.4e{txt}", col, eps)
+			col = col + 16
+
+			iter_text = iter_text + sprintf("{col %2.0f}{txt}iters = {res}%g", col, HDFE.iteration_count)
+			col = col + 13
+
+			iter_text = iter_text + sprintf("{col %2.0f}{txt}tol ={res}%5.0e", col, HDFE.tolerance)
+			col = col + 14
+
 			min_eta = min(select(eta, !separation_mask))
-			iter_text = iter_text + sprintf("{col 84}{txt} min(eta) = {%s}%6.2f", min_eta < log_septol - 1 & !check_separation ? "err" : "res", min_eta ) // Add "& verbose>0"
-			iter_text = iter_text + sprintf("{txt}{col 104}[{txt}%s%s%s{txt}] ", iter_fast_partial ? " " : "p", iter_fast_solver ? " " : "s", ok ? "o" : " ")
-			if (N_sep) iter_text = iter_text + sprintf("{col 108}{txt} sep.obs. = {res}%g", N_sep)
+			iter_text = iter_text + sprintf("{col %2.0f}{txt} min(eta) = {%s}%6.2f", col, min_eta < log_septol - 1 & !check_separation ? "err" : "res", min_eta ) // Add "& verbose>0"
+			col = col + 20
+			
+			//iter_text = iter_text + sprintf("{txt}{col %2.0f}[{txt}%s%s%s%s{txt}] ", col, iter_fast_partial ? " " : "p", iter_fast_solver ? " " : "s", iter_step_halving ? "h" : " ", ok ? "o" : " ")
+			iter_text = iter_text + "  {txt}"
+			iter_text = iter_text + (iter_fast_partial ? " " : "P")
+			iter_text = iter_text + (iter_fast_solver  ? " " : "S")
+			iter_text = iter_text + (iter_step_halving ? "H" : " ")
+			iter_text = iter_text + (ok ? "O" : " ")
+
+			if (N_sep) iter_text = iter_text + sprintf("{col %2.0f}{txt} sep.obs. = {res}%g", col = col + N_sep)
 			printf(iter_text + "\n")
 		}
+
+		// If using step halving, start a new iteration after the progress report
+		if (iter_step_halving) {
+			deviance = old_deviance
+			continue
+		}
+		
 		if (ok >= min_ok | ok >= 1 & deviance == 0) {
 			deviance = deviance * stdev_y
 			return(1) // converged=1
