@@ -46,10 +46,10 @@ constrained to 1{p_end}
 {synopt : {opt d}}as above, but variable will be saved as {it:_ppmlhdfe_d}{p_end}
 
 {synopt :{opth sep:aration(string)}}algorithm used to drop 
-{browse "http://scorreia.com/research/singletons.pdf":separated} observations and their associated regressors.
+{browse "http://scorreia.com/research/separation.pdf":separated} observations and their associated regressors.
 Valid options are {it:fe}, {it:ir}, {it:simplex}, and {it:mu} (or any combination of those).
 Although {it:ir} (iterated rectifier) is the only one that can systematically correct separation arising from both regressors and fixed effects, by default the first three methods are applied ({it: fe simplex ir}).
-See the {browse "http://scorreia.com/research/singletons.pdf":ppmlhdfe paper} as well as {browse "https://github.com/sergiocorreia/ppmlhdfe/blob/master/guides/separation_primer.md":this guide} for more information.{p_end}
+See the {browse "http://scorreia.com/research/ppmlhdfe.pdf":ppmlhdfe paper} as well as {browse "https://github.com/sergiocorreia/ppmlhdfe/blob/master/guides/separation_primer.md":this guide} for more information.{p_end}
 
 {syntab:SE/Robust}
 {synopt:{opt vce}{cmd:(}{help ppmlhdfe##opt_vce:vcetype}{cmd:)}}{it:vcetype}
