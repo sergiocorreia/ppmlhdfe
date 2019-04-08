@@ -771,7 +771,8 @@ class GLM
 			iter_text = iter_text + (iter_step_halving ? "H" : " ")
 			iter_text = iter_text + (ok ? "O" : " ")
 
-			if (N_sep) iter_text = iter_text + sprintf("{col %2.0f}{txt} sep.obs. = {res}%g", col = col + N_sep)
+			col = col + 6
+			if (N_sep) iter_text = iter_text + sprintf("{col %2.0f}{txt} sep.obs. = {res}%g", col = col, N_sep)
 			printf(iter_text + "\n")
 		}
 
