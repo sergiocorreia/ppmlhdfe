@@ -20,7 +20,18 @@ This guide describes advanced and internal `ppmlhdfe` options.
 
 ## Mata internal options
 
-Options passed directly to Mata. You can set any property of the [GLM](https://github.com/sergiocorreia/ppml_hdfe_demo/blob/master/src/ppmlhdfe.mata#L102) class can be set. However, they must be set in the form `option(value)` instead of `option`, even if the options are booleans.
+`ppmlhdfe` allows you to change *any* of the internal options defined in the [GLM](https://github.com/sergiocorreia/ppmlhdfe/blob/master/src/ppmlhdfe.mata#L108) Mata class.
+For instance, if you don't want to standardize the variables before running the computations you can add the `standardize_data(1)` option to ppmlhdfe:
+
+```stata
+sysuse auto
+ppmlhdfe price gear, a(turn trunk) standardize_data(0)
+```
+
+In this case, notice how turning off standardization gives the exact same results although convergence takes a little longer (see [Marquardt (1980)](https://www.jstor.org/stable/pdf/2287388.pdf) for a discussion of the numerical benefits of standardizing or "scaling" the data).
+
+Also note that all of these Mata options must be set in the form `option(value)` (so you cannot write `standardize_data` but must write `standardize_data(0)` or `standardize_data(1)`).
+
 
 ### Initialization options
 
