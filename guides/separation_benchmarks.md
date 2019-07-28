@@ -5,7 +5,7 @@
 
 To the best of our knowledge, no existing statistical software addresses the separation problem in a robust way, more so when working with fixed effects. In this post, we study a few simple examples of separation, and how they affect some of the most popular statistical packages.
 
-We also include [18 example datasets](https://github.com/sergiocorreia/ppmlhdfe/tree/master/test/separation_datasets) that can be used for package developers to test for correctness of their programs, and invite further additions to this list.
+We also include [18 example datasets](https://github.com/sergiocorreia/ppmlhdfe/tree/master/test/separation_datasets) that can be used by package developers to test for correctness of their programs, and we invite further additions to this list.
 
 Note that this is in no way a critique of the packages discussed below, which are in our opinion of excellent quality.
 Merely, we are using them to show the fact that separation is not only a [theoretical](http://scorreia.com/research/separation.pdf) problem, but a practical one.
