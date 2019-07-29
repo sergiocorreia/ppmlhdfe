@@ -153,9 +153,9 @@ As you can see in the line `(dropped 2 observations ...)`, the separated observa
 
 This method implements the modified simplex solver described by Clarkson and Jennrich (1991), with some twists. For instance, there is no need to run the simplex if there are no perfectly collinear regressors on the y>0 sample, in which case we stop.
 
-This method would be sufficient except for one large drawback, that it does not handle separation arising from fixed effects, or from linear combinations of fixed effects and other regressors.
+This method would be sufficient except for one large drawback, that it does not handle separation arising from fixed effects (it can, however, be used to detect separation arising from linear combinations of fixed effects with other regressors, but only after making some modifications described in the appendix of [our paper](http://scorreia.com/research/separation.pdf).)
 
-For instance, in the example below, the combination of the `fe` and `simplex` methods fails to detect separation:
+This drawback is illustrated in the example below, where the combination of the `fe` and `simplex` methods fails to detect separation:
 
 ```stata
 clear
