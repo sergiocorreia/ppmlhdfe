@@ -38,7 +38,7 @@ storedresults save benchmark e()
 
 
 * B) As FEs
-ppmlhdfe y, a(id1 id2, maxiter(1000)) maxiter(100)
+ppmlhdfe y, a(id1 id2, maxiter(3000)) maxiter(100)
 storedresults compare benchmark e(), tol(1e-8) include(`include_list')
 
 

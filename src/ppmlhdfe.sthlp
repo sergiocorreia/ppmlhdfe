@@ -1,5 +1,5 @@
 {smcl}
-{* *! version 2.1.0 05mar2019}{...}
+{* *! version 2.2.0 02aug2019}{...}
 {vieweralsosee "[R] poisson" "help poisson"}{...}
 {vieweralsosee "[R] xtpoisson" "help xtpoisson"}{...}
 {vieweralsosee "[R] glm" "help glm"}{...}
@@ -17,6 +17,7 @@
 {viewerjumpto "Citation" "ppmlhdfe##citation"}{...}
 {viewerjumpto "Authors" "ppmlhdfe##contact"}{...}
 {viewerjumpto "Support and updates" "ppmlhdfe##support"}{...}
+{viewerjumpto "Examples" "ppmlhdfe##examples"}{...}
 {viewerjumpto "Stored results" "ppmlhdfe##results"}{...}
 {title:Title}
 
@@ -146,7 +147,7 @@ as well as the {cmd:accel()}, {cmd:transform()}, and {cmd:prune} options to modi
 For instance, {cmd:standardize_data(0)} will disable the standardization of variables (done to increase numerical accuracy),
 while {cmd:use_exact_solver(1)} will run avoid using a faster version of the least squares solver on the initial IRLS iterations.
 
-{pstd}More information is available {browse "https://github.com/sergiocorreia/ppmlhdfe/blob/master/guides/separation_primer.md":here}.
+{pstd}More information on these and other undocumented options is available in the {browse "https://github.com/sergiocorreia/ppmlhdfe/blob/master/guides/undocumented.md":online guide}.
 
 
 {marker caveats}{...}
@@ -206,6 +207,44 @@ Sergio Correia, Paulo Guimarães, Thomas Zylkin: "Verifying the existence of max
 {pstd}To see your current version, and to see the installed dependencies, type {cmd:ppmlhdfe, version}
 
 {pstd}To download the latest version, to report report any issues, or for additional support, please see the {browse "https://github.com/sergiocorreia/ppmlhdfe":Github repo} of the project.
+
+
+{marker examples}{...}
+{title:Examples}
+
+{pstd}First, we will replicate Example 1 from Stata's
+{browse "https://www.stata.com/manuals/rpoisson.pdf":poisson manual}.
+Note that we run poisson with robust standard errors in order to obtain
+standard errors matching ppmlhdfe:{p_end}
+{hline}
+{phang2}{cmd:. use http://www.stata-press.com/data/r14/airline}{p_end}
+{phang2}{cmd:. poisson injuries XYZowned, vce(robust)}{p_end}
+{phang2}{cmd:. ppmlhdfe injuries XYZowned}{p_end}
+{hline}
+
+
+{pstd}To add fixed effects, we can use the absorb() option.
+The example below does so, based on Example 1 of the 
+{browse "https://www.stata.com/manuals/rpoisson.pdf":xtpoisson manual}
+(see also example 2 of the ppmlhdfe paper.{p_end}
+{hline}
+{phang2}{cmd:. use "https://www.stata-press.com/data/r16/ships", clear}{p_end}
+{phang2}{cmd:. xtpoisson accident op_75_79 co_65_69 co_70_74 co_75_79, exp(service) irr fe vce(robust) // xtpoisson standard errors need to be multiplied by e(N_g) / (e(N_g)-1)}{p_end}
+{phang2}{cmd:. poisson accident op_75_79 co_65_69 co_70_74 co_75_79 i.ship, exp(service) irr vce(cluster ship)}{p_end}
+{phang2}{cmd:. ppmlhdfe accident op_75_79 co_65_69 co_70_74 co_75_79, exp(service) irr absorb(ship) vce(cluster ship)}{p_end}
+{hline}
+
+
+{pstd}Finally, in the example below we replicate a more complex case involving trade data.
+Here, we add three levels of fixed effects,
+corresponding to exporter-importer, exporter-year, and importer-year.
+See Example 3 of the {browse "http://scorreia.com/research/ppmlhdfe.pdf":ppmlhdfe paper} for more details.{p_end}
+{hline}
+{phang2}{cmd:. use "http://fmwww.bc.edu/RePEc/bocode/e/EXAMPLE_TRADE_FTA_DATA" if category=="TOTAL", clear}{p_end}
+{phang2}{cmd:. egen imp = group(isoimp)}{p_end}
+{phang2}{cmd:. egen exp = group(isoexp)}{p_end}
+{phang2}{cmd:. ppmlhdfe trade fta, a(imp#year exp#year imp#exp) cluster(imp#exp)}{p_end}
+{hline}
 
 
 {marker results}{...}
@@ -281,4 +320,3 @@ Sergio Correia, Paulo Guimarães, Thomas Zylkin: "Verifying the existence of max
 {syntab:Functions}
 {synopt:{cmd:e(sample)}}marks estimation sample{p_end}
 {p2colreset}{...}
-

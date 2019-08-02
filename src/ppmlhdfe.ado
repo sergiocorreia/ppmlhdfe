@@ -1,20 +1,6 @@
-*! version 2.1.0 04apr2019
+*! version 2.2.0 02aug2019
 *! Authors: Sergio Correia, Paulo Guimarães, Thomas Zylkin
 *! URL: https://github.com/sergiocorreia/ppmlhdfe
-
-* TODO:
-
-* - update help
-* - On help file, add a section for semi-secret stuff. EG: verbose(-1), plus the reghdfe and mata options
-* - Also add a separate help file for the secret stuff (simplex option, relu option)
-
-* DONE:
-* - Easier-to-read iteration output in main IRLS thread
-* - Secret option that allows ppmlhdfe to work as -tagsep-
-*		ppmlhdfe y x1 x2, a(..) tagsep(VARNAME) R2 z(varname) ...
-* - Write/improve iteration output of the relu method
-* - Run validate tagsep against this option!
-
 
 program ppmlhdfe, eclass
 	if replay() {
@@ -36,7 +22,7 @@ program ppmlhdfe, eclass
 	else {
 		Cleanup 0
 		ms_get_version ftools, min_version("2.36.1")
-		ms_get_version reghdfe, min_version("5.6.8")
+		ms_get_version reghdfe, min_version("5.7.2")
 		cap noi Estimate `0'
 		Cleanup `c(rc)'
 	}

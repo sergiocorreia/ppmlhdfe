@@ -66,8 +66,8 @@ class GLM
 	`Boolean'				remove_collinear_variables
 	`Boolean'				use_exact_solver
 	`Boolean'				use_exact_partial
-	`Real'					tolerance, start_inner_tol, target_inner_tol
-	`Integer'				accel_start, accel_skip
+	`Boolean'				use_heuristic_tol
+	`Real'					tolerance, start_inner_tol, target_inner_tol, realized_tolerance
 	`Integer'				iter, subiter // Iteration and subiteration counts
 	`Integer'				min_ok // Minimum number of "ok" iterations before declaring convergence
 	`Integer'				maxiter // Maximum number of iterations in IRLS step
@@ -85,14 +85,13 @@ class GLM
 	`Integer'				simplex_maxiter
 	
 	`Real'					relu_tol
-	`Real'					relu_regtol
-	`Real'					relu_septol
 	`Real'					relu_maxiter
 	`Boolean'				relu_report_r2
 	`String'				relu_sepvarname
 	`String'				relu_zvarname
 	`Boolean'				relu_debug
 	`Boolean'				relu_strict
+	`Boolean'				relu_accelerate
 
 	// Methods
 	`Void'					new()
@@ -119,16 +118,15 @@ class GLM
 	standardize_data = 1
 	use_exact_solver = 0
 	use_exact_partial = 0
+	use_heuristic_tol = 1
 	use_step_halving = 0
 	step_halving_memory = 0.9
 	max_step_halving = 2
-	accel_start = 2
-	accel_skip = 5
 	tolerance = 1e-8
 	target_inner_tol = 1e-9 // Target HDFE tolerance
 	start_inner_tol = 1e-4
 	initial_guess_method = "simple"
-	min_ok = 2 // Set to 1 or at most 2... // BUGBUG: If this is below 2, then this test will fail: savefe_advanced.do (!!)
+	min_ok = 1 // Set to 1 or at most 2... // BUGBUG: If this is below 2, then this test will fail: savefe_advanced.do (!!)
 	maxiter = 1000 // 10,000 ?
 
 	// Separation parameters
@@ -139,12 +137,11 @@ class GLM
 	simplex_maxiter = 1000
 
 	relu_tol = 1e-4
-	relu_regtol = -1 // If not explicitly set, will be determined based on relu_tol
-	relu_septol = -1 // If not explicitly set, will be determined based on relu_tol
 	relu_maxiter = 100
 	relu_report_r2 = relu_debug = 0
 	relu_zvarname = relu_sepvarname = ""
 	relu_strict = 0
+	relu_accelerate = 0 // 0 by default as it conflicts with the "accelerate partial" trick (by making the weights change frequently). Maybe if we make the weights more stable across iters...?
 }
 
 
@@ -158,12 +155,7 @@ class GLM
 	assert_boolean(standardize_data)
 	assert_boolean(use_exact_solver)
 	assert_boolean(use_exact_partial)
-
-	assert_msg(trunc(accel_start)==accel_start)
-	assert_msg(accel_start > 1, "Cannot accelerate on the first iteration", 9001, 0)
-	
-	assert_msg(trunc(accel_skip)==accel_skip & !missing(accel_skip))
-	assert_msg(accel_skip >= 0, "accel_skip must be non-negative", 9001, 0)
+	assert_boolean(use_heuristic_tol)
 
 	assert_msg(0 < tolerance & tolerance <= 1, "tolerance must be a real between 0 and 1", 9001, 0)
 	assert_msg(0 < start_inner_tol & start_inner_tol <= 1, "start_inner_tol must be a real between 0 and 1", 9001, 0)
@@ -329,7 +321,7 @@ class GLM
 		num_drop = relu_fix_separation(HDFE, y, x, k, stdev_x, true_w, weight_type, weight_var, target_inner_tol,
 		                               relu_tol, relu_maxiter,
 		                               relu_sepvarname, relu_zvarname, relu_debug, relu_report_r2,
-		                               non_separated_obs=., relu_strict, verbose)
+		                               non_separated_obs=., relu_strict, relu_accelerate, verbose)
 		if (num_drop & rows(offset)) offset = offset[non_separated_obs]
 		num_separated = num_separated + num_drop
 	}
@@ -355,7 +347,7 @@ class GLM
 	`Variables'				data
 	`Vector'				b
 	`Matrix'				V
-	`Integer'				N, df_r, rank, N_sep
+	`Integer'				N, df_r, rank, N_sep, backup_iter
 	`Boolean'				check_separation
 	`Boolean'				converged
 	`Real'					deviance, eps, ll, ll_0, ll_0_mu, chi2
@@ -363,6 +355,8 @@ class GLM
 
 
 	assert(++init_step == 4)
+
+	if (verbose > 1) printf("{txt} @@ Starting GLM::solve\n")
 
 	// Set up tolerance (used to estimate initial values and first step of IRLS)
 	HDFE.tolerance = max(( start_inner_tol , tolerance ))
@@ -403,12 +397,15 @@ class GLM
 		non_separated_obs = trim_separated_obs(HDFE, y, x, weight_type, weight_var, true_w, separated_obs, verbose)
 		// Note that we might separate more than N_sep obs. due to possible new singletons
 		mu = mu[non_separated_obs]
+		eta = eta[non_separated_obs]
 		z = z[non_separated_obs]
 		if (rows(offset)) offset = offset[non_separated_obs]
 		remove_collinears(HDFE, target_inner_tol, x, k, stdev_x, weight_type, weight_var, true_w, verbose) // Will modify (HDFE.not_basevar, x, k, stdev_x) accordingly, and overwrite HDFE.weights
 
 		// Re-run IRLS with trimmed data
+		backup_iter = iter
 		converged = inner_irls(mu, eta, 0, data=., z=., deviance=., eps=., separated_obs=J(0, 1, .))
+		iter = iter + backup_iter
 		assert_msg(converged, sprintf("{err}Failed to converge in %4.0f iterations (eps=%9.6e){txt}\n", maxiter, eps), 430, 0)
 	}
 
@@ -566,6 +563,9 @@ class GLM
 	`Real'			log_septol, old_deviance, delta_deviance, alt_tol, highest_inner_tol, denom_eps, min_eta, adjusted_log_septol
 	`Boolean'		iter_fast_partial, iter_fast_solver, iter_step_halving
 	`String'		iter_text
+	`Matrix'		last_x
+	`Vector'		eps_history
+	`Real'			predicted_eps
 
 	// Sanity checks
 	assert(k == cols(x))
@@ -579,7 +579,7 @@ class GLM
 	censor_mu(mu, y, verbose)
 
 	// Initialize IRLS
-	highest_inner_tol = max((1e-12, min((target_inner_tol, 0.01 * tolerance)) )) // This is the *actual* target tolerance; HDFE.partial_out() will never have a tolerance higher than this
+	highest_inner_tol = max((1e-12, min((target_inner_tol, 0.1 * tolerance)) )) // This is the *actual* target tolerance; HDFE.partial_out() will never have a tolerance higher than this
 	log_septol = log(mu_tol) // sep. tolerance in terms of Mu and not Eta
 	eta = log(mu)
 	HDFE.load_weights("aweight", "<placeholder for mu>", y, 1) // y is just a placeholder; we'll place (true_w*mu) later
@@ -587,16 +587,24 @@ class GLM
 	ok = N_sep = iter_step_halving = num_step_halving = 0
 	separation_mask = z = z_last = J(rows(eta), 1, 0)
 	zero_sample = selectindex(y :== 0)
+	eps_history = J(3, 1, .)
+
 	if (verbose > 0) {
 		printf("{txt} @@ Starting IRLS\n")
+		printf("{txt}    Target HDFE tolerance:{res}%-9.4e{txt}\n", highest_inner_tol)
 		if (verbose > 2) stata("memory")
 	}
 
 	// Iterate
+	iter = 0
 	while ((ok < min_ok) & (++iter <= maxiter)) {
 
-		iter_fast_partial = !iter_step_halving & !use_exact_partial & (iter >= accel_start) & mod(iter - accel_start + 1, accel_skip) & (eps > 11 * tolerance)
+		iter_fast_partial = !use_exact_partial & (iter > 1)
 		iter_fast_solver  = !iter_step_halving & !use_exact_solver  & k & (HDFE.tolerance > tolerance * 11)
+		if (use_heuristic_tol) {
+			predicted_eps = predict_eps(eps_history, eps)
+			iter_fast_solver = iter_fast_solver & (predicted_eps > tolerance)
+		}
 
 		// (a) Update weights: W = μ
 		if (verbose > 1) printf("{txt} @@@ HDFE.update_sorted_weights()\n")
@@ -623,11 +631,12 @@ class GLM
 		// (c) Data is (z, X)
 		if (iter_fast_partial) {
 			data[., 1] = data[., 1] + z - z_last
-			//data = data[., 1] + z - z_last , x
+			// data[., 1] = data[., 1] - (last_x - data[., 2..cols(data)]) * b[1..k]
 		}
 		else {
-			data = (z,x)
+			data = (z, x)
 		}
+		//last_x = data[., 2..cols(data)]
 
 		// (d.1) Partial out data
 		if (verbose > 1) printf("{txt} @@@ HDFE._partial_out()\n")
@@ -718,11 +727,19 @@ class GLM
 			//eps = abs(delta_deviance) / (0.1 * stdev_y + min((deviance, old_deviance)))
 			//eps = abs(delta_deviance) / max(( min((deviance, old_deviance)) , epsilon(100) ))
 
-			// Declare convergence once we have # non-accelerated iterations where eps < tol
-			if (eps< tolerance) {
-				accel_skip = 1
-				if (!iter_fast_partial & !iter_fast_solver & (HDFE.tolerance <= 1.1 * highest_inner_tol | HDFE.G==1)) {
-					ok = ok + 1
+			// Declare convergence once we have enough non-accelerated iterations where eps < tol
+			if (eps < tolerance) {
+				if (use_heuristic_tol & HDFE.accuracy >= 0) {
+					// HDFE.accuracy can be -1 with LSMR (LSMR does not update accuracy as it uses multiple tols)
+					assert(HDFE.accuracy <= HDFE.tolerance)
+					if (!iter_fast_solver & (HDFE.accuracy <= 1.1 * highest_inner_tol | HDFE.G==1)) {
+						ok = ok + 1
+					}
+				}
+				else {
+					if (!iter_fast_solver & (HDFE.tolerance <= 1.1 * highest_inner_tol | HDFE.G==1)) {
+						ok = ok + 1
+					}
 				}
 			}
 			else if (use_step_halving & (delta_deviance < 0) & (num_step_halving < max_step_halving)) {
@@ -788,15 +805,39 @@ class GLM
 		}
 
 		// As IRLS starts to converge, switch to stricter tolerances when partialling out
-		if (eps < HDFE.tolerance) {
-			// Increase HDFE tol by at least 10x.
-			// Go further if IRLS is converging fast enough.
-			// But don't increase beyond the user-requested tol!
-			// (Note: "max((eps, epsilon(1)))" avoids missing values when eps==0)
-			alt_tol = 10 ^ -ceil(log10(1 / max((0.1 * eps, epsilon(1)))  ))
-			HDFE.tolerance = max((min((0.1 * HDFE.tolerance, alt_tol)), highest_inner_tol))
+		if (use_heuristic_tol) {
+			if (eps < HDFE.tolerance) {
+				// Increase HDFE tol by at least 10x.
+				// Go further if IRLS is converging fast enough.
+				// But don't increase beyond the user-requested tol!
+				// (Note: "max((eps, epsilon(1)))" avoids missing values when eps==0)
+				HDFE.tolerance = max((min((0.1 * HDFE.tolerance, alt_tol)), highest_inner_tol))
+				alt_tol = 10 ^ -ceil(log10(1 / max((0.1 * eps, epsilon(1)))  ))
+			}
+			if (use_exact_partial & HDFE.tolerance > tolerance) HDFE.tolerance = 0.1 * tolerance // BUGBUG??
+
+			if (inrange(tolerance, predicted_eps, eps) & inrange(HDFE.tolerance/highest_inner_tol, 1.1, 10.1) & (HDFE.accuracy/highest_inner_tol <= 10.1)) {
+				HDFE.tolerance = 0.1 * HDFE.tolerance
+			}
+
 		}
-		if (use_exact_partial & HDFE.tolerance > tolerance) HDFE.tolerance = 0.1 * tolerance // BUGBUG??
+		else {
+
+			if (eps < HDFE.tolerance) {
+				// Increase HDFE tol by at least 10x.
+				// Go further if IRLS is converging fast enough.
+				// But don't increase beyond the user-requested tol!
+				// (Note: "max((eps, epsilon(1)))" avoids missing values when eps==0)
+				HDFE.tolerance = max((min((0.1 * HDFE.tolerance, alt_tol)), highest_inner_tol))
+				alt_tol = 10 ^ -ceil(log10(1 / max((0.1 * eps, epsilon(1)))  ))
+			}
+			if (use_exact_partial & HDFE.tolerance > tolerance) HDFE.tolerance = 0.1 * tolerance // BUGBUG??
+
+		}
+
+
+
+		
 	}
 
 	return(0) // converged=0

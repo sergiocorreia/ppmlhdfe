@@ -21,17 +21,29 @@ mata:
 							  `Boolean'			report_r2,
 							  `Vector'			non_separated_obs,
 							  `Boolean'			strict,
+							  `Boolean'			accelerate,
 							  `Boolean'			verbose)
 {
 	// Note: currently ignoring weights (weight_type, weight_var) as the algorithm does not care about them
 
 	 // , num_drop, num_collinear
-	`Integer'				n, num_boundary, iter, num_sep, v, col, backup_verbose
+	`Integer'				n, num_boundary, iter, num_sep, v, col, backup_verbose, total_iter, ic
 	`Real'					delta, uu, backup_tol, regtol, epsilon
 	`Real'					ee, ee_cumulative, ee_boundary
 	`Variable'				is_boundary, u, w, resid, xbd
 	`Vector'				boundary_sample, interior_sample, idx, separated_obs, b
 	`String'				end_of_table, table_row
+
+	`Boolean'				convergence_is_stuck
+	`Integer'				num_candidates, num_candidates1, num_candidates2
+	`Real'					progress_ratio, progress_ratio1, progress_ratio2
+	`Variable'				xbd_prev1, xbd_prev2
+	`Vector'				accelerated_sample
+	`Real'					acceleration_value
+	`Real'					threshold
+
+	`Vector'				utilde, u_last
+	`Matrix'				xtilde
 
 	// 1. Validate and initialize parameters
 	v = sepname != "" ? max((verbose, 1)) : verbose // tagsep.ado mode will always have verbose>0
@@ -47,6 +59,11 @@ mata:
 	interior_sample = selectindex(!is_boundary)
 	num_boundary = rows(boundary_sample)
 	separated_obs = J(0, 1, .)
+	accelerated_sample = J(0, 1, .)
+	acceleration_value = 1 // Weight given to accelerated obs (obs where y==0 and xbd<0 for a few iterations)
+
+	convergence_is_stuck = 0
+	xbd = xbd_prev1 = xbd_prev2 = .
 
 	if (v > 0) printf("{txt}\n $$ Starting -relu- separation test on {res}%g{txt} suspect obs.\n", num_boundary)
 	if (v > 0) printf("{txt} $$ Parameters: regtol ={res}%2.0e{txt}  tol ={res}%2.0e{txt}  maxiter ={res}%3.0fc{txt}\n", regtol, tol, maxiter)
@@ -64,6 +81,9 @@ mata:
 
 	uu = quadcross(u, u)
 	num_sep = 0
+	total_iter = 0 // Total iteration count (within HDFE)
+
+	u_last = .
 
 	if (v > 0) printf(" {txt}{c TLC}{hline 5}{c TT}{hline 11}{c TT}{hline 11}{c TT}{hline 7}{c TT}{hline 11}{c TT}{hline 15}{c TT}{hline 14}{c TRC}\n")
 	if (v > 0) printf(" {txt}{c |}  i  {c |}    u'u    {c |}    e'e    {c |}  LB %% {c |}   min(e)  {c |}    Epsilon    {c |} # Candidates {c |}\n")
@@ -72,8 +92,24 @@ mata:
 
 	for (iter=1; iter<=maxiter; iter++) {
 
+		swap(xbd_prev2, xbd_prev1) 	// xbd_prev2 = xbd_prev1
+		swap(xbd_prev1, xbd)		// xbd_prev1 = xbd
+
+		if (iter == 1) {
+			utilde = u
+			xtilde = x
+		}
+		else {
+			utilde = u + utilde - u_last
+			// xtilde = xtilde
+		}
+		u_last = u
+
 		// Weights
-		b = solve_lse(HDFE, u, x, boundary_sample, interior_sample, resid=., epsilon=., verbose)
+		b = solve_lse(HDFE, u, x, utilde, xtilde, boundary_sample, interior_sample,
+		              accelerated_sample, acceleration_value,
+		              resid=., epsilon=., ic=., verbose)
+		total_iter = total_iter + ic
 		delta = epsilon + tol
 		xbd = u - resid
 
@@ -90,20 +126,40 @@ mata:
 
 
 		// Output iteration output
+		num_candidates = sum(xbd[boundary_sample]:>delta)
+		ee_cumulative = ee_cumulative + ee
+		progress_ratio = 100 * ee_cumulative / ee_boundary
+
+		// Update criteria for stuck convergence
+		// if (!convergence_is_stuck) convergence_is_stuck = accelerate & (iter> 3) & (progress_ratio < progress_ratio1 + 0.5) & (progress_ratio1 < progress_ratio2 + 0.5) & (num_candidates == num_candidates2)
+		if (!convergence_is_stuck) convergence_is_stuck = accelerate & (iter> 3) & (progress_ratio - progress_ratio2 < 1.0) & (num_candidates == num_candidates2)
+		accelerated_sample = convergence_is_stuck ? selectindex(!y :& (xbd_prev2 :< 1.01 * xbd_prev1) :& (xbd_prev1 :< 1.01 * xbd) :& (xbd :< (-0.1 * delta)  )) : J(0, 1, .)
+		acceleration_value = convergence_is_stuck & rows(accelerated_sample) ? min((256, 4 * acceleration_value)) : 1
+		// Question: once we turn acceleration on for a given obs, should we leave it on forever?
+
 		if (v > 0) {
 			col = 0
 			table_row = sprintf("{txt} {c |} %3.0f {c |}", iter)
 			//table_row = table_row + sprintf(" {col %2.0f}{c |}", subiter ? sprintf("%3.0f", subiter) : "", col = col + 14)
 			table_row = table_row + sprintf("%10.6f {col %2.0f}{c |}", uu, col = col + 12)
 			table_row = table_row + sprintf("%10.6f {col %2.0f}{c |}", ee, col = col + 12)
-			ee_cumulative = ee_cumulative + ee
-			table_row = table_row + sprintf(" %5.1f {col %2.0f}{c |}", 100 * ee_cumulative / ee_boundary, col = col + 8)
+			table_row = table_row + sprintf(" %5.1f {col %2.0f}{c |}", progress_ratio, col = col + 8)
 			table_row = table_row + sprintf("%10.6f {col %2.0f}{c |}", min(resid), col = col + 12)
 			table_row = table_row + sprintf("%14.8f {col %2.0f}{c |}", delta, col = col + 16)
-			table_row = table_row + sprintf("%12.0fc {col %2.0f}{c |}", sum(xbd[boundary_sample]:>delta), col = col + 23)
-			
+			table_row = table_row + sprintf("%12.0fc {col %2.0f}{c |}", num_candidates, col = col + 23)
+			if (convergence_is_stuck & rows(accelerated_sample)) table_row = table_row + sprintf(" Accelerating %f obs (w=%f)", rows(accelerated_sample), acceleration_value)
 			printf(table_row + "\n")
+			//mm_matlist(xbd[1..10]', "%6.4f", 0, "", "")
+			//accelerated_sample'
 		}
+
+		//mm_matlist((y, J(rows(y), 1, .), u, xbd, resid, is_ignored))
+		// Update stuck-related variables
+		progress_ratio2 = progress_ratio1
+		progress_ratio1 = progress_ratio
+		num_candidates2 = num_candidates1
+		num_candidates1 = num_candidates
+		progress_ratio = num_candidates = .
 
 		// Update xbd -> 0 when y>0
 		update_mask(xbd, interior_sample, 0)
@@ -118,7 +174,7 @@ mata:
 		if (all(xbd[boundary_sample] :>= 0)) {
 			num_sep = sum(xbd[boundary_sample] :> 0)
 			if (v > 0) printf(end_of_table)
-			if (v > 0) printf("{txt} $$ Stopping (no negative predicted values); separation found in {res}%f{txt} observations\n", num_sep)
+			if (v > 0) printf("{txt} $$ Stopping (no negative predicted values); separation found in {res}%f{txt} observations (%g iterations and %g subiterations)\n", num_sep, iter, total_iter)
 			break
 		}
 		
@@ -127,12 +183,15 @@ mata:
 		// - Since z=xγ>0, then z'e=0. When e_i>0 this is only possible if z_i=0 i.e. there is no more separated obs. left to uncover
 		//   (there might be separated obs. when e_i=0; see the proof for more details on why this works)
 		// - This case is particularly useful in accelerating convergence when there is *no separation*, see "example_negative_residuals.do"
-		if (min(resid[boundary_sample]) >= delta) {
+		
+		_edittozerotol(resid, 1e-8)
+		threshold = 0 // delta might be better, due to numerical errors
+		if (min(resid[boundary_sample]) >= threshold) {
 			idx = select(boundary_sample, resid[boundary_sample] :> delta)
 			if (length(idx)) update_mask(xbd, idx, 0)
 			num_sep = sum(xbd[boundary_sample] :> 0)
 			if (v > 0) printf(end_of_table)
-			printf("{txt} $$ Stopping (no negative residuals); separation found in {res}%f{txt} observations\n", num_sep)
+			printf("{txt} $$ Stopping (no negative residuals); separation found in {res}%f{txt} observations (%g iterations and %g subiterations)\n", num_sep, iter, total_iter)
 			break
 		}
 
@@ -156,7 +215,7 @@ mata:
 	HDFE.tolerance = backup_tol
 
 	if (!num_sep) {
-		if (v > 0) printf("{txt} $$ - No separation found; stopping\n")
+		if (v > 0) printf("{txt} $$ - No separation found; stopping (%g iterations and %g subiterations)\n", iter, total_iter)
 		relu_post_results(HDFE, sepname, zname, debug, report_r2, separated_obs, J(n, 1, 0), v)
 		return(num_sep)
 	}

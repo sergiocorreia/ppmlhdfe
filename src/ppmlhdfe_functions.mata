@@ -5,6 +5,42 @@
 mata:
 
 
+
+// --------------------------------------------------------------------------
+// Extrapolate on the series of log(eps) to predict the need for an exact solver on next iter
+// --------------------------------------------------------------------------
+// 0=Exact 1=Fast/Accelerated
+`Boolean' predict_eps(`Vector' eps_history, `Real' eps)
+{
+	`Integer'		size, pos
+	`Matrix'		rhs, next_rhs
+	`Real'			forecast
+	`Boolean'		abort_prediction
+
+	size = rows(eps_history)
+	pos = nonmissing(eps_history)
+
+	// If there are not enough numbers, just fill history and return
+	abort_prediction = pos + 1 < size
+
+	if (pos < size) {
+		eps_history[pos + 1] = log(eps)
+	}
+	else {
+		eps_history = eps_history[2::size] \ log(eps)
+	}
+	if (abort_prediction) return(.)
+
+	rhs = 1::size
+	rhs = rhs, rhs :^ 2, rhs :^ 3
+	next_rhs = (size + 1)
+	next_rhs = next_rhs, next_rhs :^ 2, next_rhs :^ 3
+	forecast = next_rhs * qrsolve(rhs, eps_history)
+	// printf("Predicted EPS: %8.1e\n", exp(forecast))
+	return(exp(forecast))
+}
+
+
 // --------------------------------------------------------------------------
 // Least squares QR solver in two steps (that allows reusing the transform)
 // --------------------------------------------------------------------------
@@ -44,23 +80,28 @@ mata:
 
 
 // --------------------------------------------------------------------------
-// Solve least-squares with inequalies using weighting method
+// Solve least-squares with equality constraints using weighting method
 // --------------------------------------------------------------------------
 
 `Vector' solve_lse(`FixedEffects'	HDFE,
                    `Variable'		y,
                    `Variables'		x,
+                   `Variable'		ytilde,
+                   `Variables'		xtilde,
                    `Vector' 		unconstrained_sample,
                    `Vector' 		constrained_sample,
+                   `Variable'		accelerated_sample,
+                   `Real'			acceleration_value,
                    `Variable'		resid,
                    `Real'			epsilon,
+                   `Real'			iteration_count,
                    `Boolean'		verbose)
 {
 	`Integer' 				N, M, K, iter, maxiter
 	`Integer'				norm_unconstrained, norm_constrained, M1, M2
 	`Vector'				b, b_delta
-	`Variable'				w, ytilde, z
-	`Variables'				xtilde
+	`Variable'				w, z // , ytilde
+	//`Variables'			xtilde
 	`Real'					yy
 	`String'				backup_accel
 
@@ -70,7 +111,7 @@ mata:
 	// Use LSMR here because it works better for ill-conditioned matrices
 	assert(HDFE.always_run_lsmr_preconditioner == 1)
 	backup_accel = HDFE.acceleration
-	HDFE.acceleration = "lsmr"
+	// HDFE.acceleration = "lsmr"
 
 	maxiter = 0
 	N = rows(y)
@@ -97,14 +138,15 @@ mata:
 	epsilon = max((epsilon ^ (1+0.5*maxiter), 1e-8)) // It should be 1+maxiter but we are playing safe
 	
 	w = create_mask(N, M, unconstrained_sample, 1)
+	if (rows(accelerated_sample)) update_mask(w, accelerated_sample, acceleration_value)
 
 	assert(N == rows(x))
 
 	// Update weights and solve weighted least squares
 	HDFE.load_weights("aweight", "<placeholder>", w, 0) // Type, Var, Weight, Verbose
-	HDFE._partial_out(ytilde=y, 0, 0, 0, 1) // Don't standardize vars; flush aux vectors
+	HDFE._partial_out(ytilde, 0, 0, 0, 1) // Don't standardize vars; flush aux vectors
 	if (K) {
-		HDFE._partial_out(xtilde=x, 0, 0, 0, 1) // Don't standardize vars; flush aux vectors
+		HDFE._partial_out(xtilde, 0, 0, 0, 1) // Don't standardize vars; flush aux vectors
 	}
 	else {
 		xtilde = J(N, 0, .) 
@@ -125,6 +167,7 @@ mata:
 	}
 
 	HDFE.acceleration = backup_accel
+	iteration_count = HDFE.iteration_count
 	return(b)
 }
 	

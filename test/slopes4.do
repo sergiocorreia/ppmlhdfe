@@ -73,7 +73,7 @@ loc include_list ///
 // --------------------------------------------------------------------------
 
 * [TEST 1 - Keep singletons (obs #8)]
-
+/*
 	* Benchmark
 	ppmlhdfe y x ibn.i ibn.j##c.z, noa tol(1e-10) maxiter(100) 
 	gen byte bench_sample = e(sample)
@@ -81,10 +81,12 @@ loc include_list ///
 	storedresults save benchmark e()
 
 	* Test
-	ppmlhdfe y x, absorb(i j##c.z) maxiter(100) tol(1e-10) keepsing mu_tol(1e-6)
+	ppmlhdfe y x, absorb(i j##c.z) maxiter(400) tol(1e-10) keepsing mu_tol(1e-6)
 	gen byte test_sample = e(sample)
 	assert test_sample == bench_sample 
 	storedresults compare benchmark e(), tol(1e-8) include(`include_list')
+*/
+
 
 storedresults drop benchmark
 exit

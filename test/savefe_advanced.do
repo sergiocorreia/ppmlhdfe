@@ -17,7 +17,7 @@ This is NOT due to
 	use "./datasets/mus18data.dta", clear
 
 	* Save FEs
-	ppmlhdfe y x, a(ID1=id ID2=year) tol(1e-12)
+	ppmlhdfe y x, a(ID1=id ID2=year) tol(1e-12) min_ok(2)
 	loc b_x = _b[x]
 	loc b_cons = _b[_cons]
 

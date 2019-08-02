@@ -1,14 +1,19 @@
 # `ppmlhdfe`: Poisson pseudo-likelihood regression with multiple levels of fixed effects
 
-- Current version: ` 2.0.1 03mar2019`
+- Current version: `2.2.0 02aug2019`
 - Jump to: [`citation`](#citation) [`references`](#references) [`install`](#installation)
 - Also see: [`ppmlhdfe` Paper](http://scorreia.com/research/ppmlhdfe.pdf) | [Separation Paper](http://scorreia.com/research/separation.pdf) | [Help File](http://scorreia.com/help/ppmlhdfe.html) | [Separation Primer](https://github.com/sergiocorreia/ppmlhdfe/blob/master/guides/separation_primer.md) | [Separation Benchmarks](https://github.com/sergiocorreia/ppmlhdfe/blob/master/guides/separation_benchmarks.md) | [Undocumented](https://github.com/sergiocorreia/ppmlhdfe/blob/master/guides/undocumented.md)
 
 
 **ppmlhdfe** is a Stata package that implements Poisson pseudo-maximum likelihood regressions (PPML) with multi-way fixed effects, as described in [Correia, Guimarães, Zylkin (2019a)](http://scorreia.com/research/ppmlhdfe.pdf). The estimator employed is robust to statistical separation and convergence issues, due to the procedures developed in [Correia, Guimarães, Zylkin (2019b)](http://scorreia.com/research/separation.pdf).
 
+## Recent updates
+
+- **Version 2.2 02aug2019:** major speedups due to improved IRLS acceleration (see [page 7 of the paper](https://arxiv.org/pdf/1903.01690.pdf)) and due to faster separation checks.
 
 ## Citation
+
+[(Download the BibTex file here)](ppmlhdfe.bib)
 
 #### Text
 
@@ -24,17 +29,17 @@ Sergio Correia, Paulo Guimarães, Thomas Zylkin: “ppmlhdfe: Fast Poisson Estim
 </li>
 </ul>
 
-#### Bibtex
+#### BibTex
 
 ```bibtex
-@Misc{1903.01633,
+@Misc{ExistenceGLM,
   Author = {Sergio Correia and Guimar{\~a}es and Thomas Zylkin},
   Title = {Verifying the existence of maximum likelihood estimates for generalized linear models},
   Year = {2019},
   Eprint = {arXiv:1903.01633},
 }
 
-@Misc{1903.01690,
+@Misc{ppmlhdfe,
   Author = {Sergio Correia and Guimar{\~a}es and Thomas Zylkin},
   Title = {{ppmlhdfe: Fast Poisson Estimation with High-Dimensional Fixed Effects}},
   Year = {2019},

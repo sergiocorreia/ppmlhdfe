@@ -42,16 +42,12 @@ Also note that all of these Mata options must be set in the form `option(value)`
 
 - `tolerance(1e-8)`: We achieve convergence once `epsilon < tolerance`, where `epsilon = ΔDeviance / Deviance` (with some nuances for corner cases). Thus, a `tolerance` closer to zero leads to slower but more accurate results, while higher `tolerance` can be used for quick-and-dirty regressions.
 - `use_exact_solver(0)`: whether to always use an exact least-squares solver (instead of accelerating when `itol` is within 10 of `tolerance`).
-- `use_exact_partial(0)`: every IRLS iteration recomputes the weights and updates the working dependent variable `z`. That requires partialling out `z,x`, which is slow. Setting this option to 1 prevents this in some cases, and does the following shortcut:
-	- Set `Px' = Px` (set new partialled-out value of x equal to last one). The error introduced by this is proportional to how much have the weights changed.
-	- Set `Pz' = Pz + z' - z`. In this case, approximation errors are due to changes in both weights and z.
-	- Note: even if we set `use_exact_partial(1)`, the approximation will not be used a) for the first `accel_start` iterations, b) every `accel_skip` iteration after that, and c) if we are close enough to convergence (`eps < 10 tol`)
-- `accel_start(2)`: In what iteration should we start to accelerate the partialling out.
-- `accel_skip(5)`: We will skip the acceleration and instead do an exact partialling out every #th iterations. 
+- `use_exact_partial(0)`: every IRLS iteration partials out (z, X) instead of the equivalent-but-faster alternatives (described in the paper).
 - `target_inner_tol(1e-9)`: you can actually set this directly with the `itol()` option; see above.
 - `start_inner_tol(1e-4)`: initial tolerance when partialling-out.
-- `min_ok(2)`: by default we only stop when we observe `epsilon < tolerance` two times. This is a conservative approach, to be absolutely sure that convergence has been achieved. Use `min_ok(1)` for faster results.
+- `min_ok(1)`: by default we only stop when we observe `epsilon < tolerance` two times. Using `min_ok(2)` or higher forces a few extra iterations. This is useful in corner cases where the deviance has converged but the rightmost digits of the estimates might still be converging.
 - `maxiter(1000)`: maximum number of iterations, after which an error is raised.
+- `use_heuristic_tol(1)`: when this option is on, we try to anticipate if the next iteration is likely to converge. If that's the case, we preemptively increase the inner tolerance and use an exact solver, so we can stop there.
 
 ### Simplex separation options
 
@@ -63,6 +59,7 @@ Also note that all of these Mata options must be set in the form `option(value)`
 - `relu_tol(1e-4)`: used to set internal tolerances. For instance, calls to reghdfe will be set with tolerance equal to `relu_tol/10`.
 - `relu_maxiter(100)`: maximum number of iterations in ReLU step. If exceeded, the step will stop but an error will not be raised
 - `relu_strict(0)`: if set to 1, will raise an error if `relu_maxiter` is exceeded.
+- `relu_accelerate(0)`: if set to 1, it will slightly increase the weights of observations that are persistently negative, usually leading to faster convergence. This has been disabled by default as it tends to slowdown the other acceleration trick used (explained in the paper; see the line `utilde = u + utilde - u_last`).
 
 #### Creating certificates of separation
 

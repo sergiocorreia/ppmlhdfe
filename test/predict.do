@@ -49,7 +49,9 @@
 	
 	* Without FEs, d==0
 	ppmlhdfe price weight length gear, noa d
-	assert abs(_ppmlhdfe_d) < 1e-12
+	assert abs(_ppmlhdfe_d) < 1e-6
+	ppmlhdfe price weight length gear, noa d min_ok(2)
+	assert abs(_ppmlhdfe_d) < 1e-10
 
 	* Ensure that -d- must be saved
 	drop _*
@@ -76,7 +78,7 @@
 	gen byte sample = e(sample)
 	glm price weight length gear i.turn i.trunk , fam(poi) ltol(1e-12)
 	predict double eta_bench, eta
-	assert abs(eta - eta_bench) < 1e-9 if sample // glm predicts -eta- even outside the sample
+	assert abs(eta - eta_bench) < 1e-6 if sample // glm predicts -eta- even outside the sample
 	drop eta* sample _*
 
 	* Ensure that GLM and PPMLHDFE agree on eta on full sample w/out FEs
@@ -102,7 +104,7 @@
 
 	glm price weight length gear i.turn i.trunk , fam(poi) ltol(1e-12)
 	predict double mu_bench, mu
-	assert reldif(mu, mu_bench) < 1e-8 // less precision due to exp() transformation
+	assert reldif(mu, mu_bench) < 1e-6 // less precision due to exp() transformation
 	drop mu* _*
 
 
@@ -117,7 +119,7 @@
 	}
 
 	* TEST WITHOUT STANDARDIZING Y,X
-	ppmlhdfe price weight length gear, a(turn trunk) d tol(1e-12) keepsing standardize_data(0)
+	ppmlhdfe price weight length gear, a(turn trunk) d tol(1e-12) keepsing standardize_data(0) min_ok(2)
 
 	foreach opt of local opts {
 		*di as text "- Computing option <`opt'>"
@@ -129,17 +131,17 @@
 		if inlist("`opt'", "response", "score") {
 			gen double delta = (`opt' - `opt'_bench) / (0.1 + price)
 			su delta
-			assert abs(delta) < 1e-9
+			assert abs(delta) < 1e-7
 			drop delta
 		}
 		else {
-			assert reldif(`opt', `opt'_bench) < 1e-9
+			assert reldif(`opt', `opt'_bench) < 1e-7
 		}
 		drop `opt'
 	}
 
 	* TEST STANDARDIZING Y,X (way less accuracy! why?)
-	ppmlhdfe price weight length gear, a(turn trunk) d tol(1e-12) keepsing
+	ppmlhdfe price weight length gear, a(turn trunk) d tol(1e-12) keepsing min_ok(2)
 
 	foreach opt of local opts {
 		*di as text "- Computing option <`opt'>"

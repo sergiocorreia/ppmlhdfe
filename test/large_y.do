@@ -22,7 +22,7 @@ generate double y = exp(40+x1+x2+u)
 	storedresults save benchmark e()
 
 	* 2. Run ppmlhdfe
-	ppmlhdfe y x1 x2, noa
+	ppmlhdfe y x1 x2, noa tol(1e-10)
 	gen sample = e(sample)
 	assert sample == 1
 	assert e(N_hdfe)==1
