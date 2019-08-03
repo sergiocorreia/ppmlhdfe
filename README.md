@@ -10,7 +10,7 @@
 ## Recent updates
 
 - **Version 2.2 02aug2019:** major speedups due to improved IRLS acceleration (see [page 7 of the paper](https://arxiv.org/pdf/1903.01690.pdf)) and due to faster separation checks.
-- **Version 2.1 04apr2019:** added experimental [step-halving](https://journal.r-project.org/archive/2011/RJ-2011-012/index.html). Not as useful for Poisson models as with other GLMs, so it's turned off by default. You can enable it through the options `use_step_halving(0)`, `step_halving_memory(0.9)`, and `max_step_halving(2)` (default values in parenthesis; include `use_step_halving(1)` to enable.).
+- **Version 2.1 04apr2019:** added experimental [step-halving](https://journal.r-project.org/archive/2011/RJ-2011-012/index.html). Not as useful for Poisson models as with other GLMs, so it's turned off by default. You can enable it through the options `use_step_halving(0)`, `step_halving_memory(0.9)`, and `max_step_halving(2)` (default values in parenthesis; include `use_step_halving(1)` to enable.)
 
 
 
