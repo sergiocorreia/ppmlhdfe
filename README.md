@@ -35,14 +35,14 @@ Sergio Correia, Paulo Guimarães, Thomas Zylkin: “ppmlhdfe: Fast Poisson Estim
 
 ```bibtex
 @Misc{ExistenceGLM,
-  Author = {Sergio Correia and Paulo Guimar{\~a}es and Thomas Zylkin},
+  Author = {Correia, Sergio and Guimar{\~a}es, Paulo and Zylkin, Thomas},
   Title = {Verifying the existence of maximum likelihood estimates for generalized linear models},
   Year = {2019},
   Eprint = {arXiv:1903.01633},
 }
 
 @Misc{ppmlhdfe,
-  Author = {Sergio Correia and Paulo Guimar{\~a}es and Thomas Zylkin},
+  Author = {Correia, Sergio and Guimar{\~a}es, Paulo and Zylkin, Thomas},
   Title = {{ppmlhdfe: Fast Poisson Estimation with High-Dimensional Fixed Effects}},
   Year = {2019},
   Eprint = {arXiv:1903.01690},
