@@ -6,29 +6,11 @@ adopath ++ "..\github\reghdfe-master\src"
 adopath ++ "..\datasets\"
 */
 
-
 clear
 
 which reghdfe
 which ftools
 which ppmlhdfe
-
-
-** Non-existence examples  (This part needs to be run from a .do file.)
-input y x1 x2 x3
-0	1	2	1
-0	0	0	2
-0	2	3	3
-1	1	2	4
-2	2	4	5
-3	1	2	6
-end
-
-poisson y x1 x2 x3, nolog
-
-ppml y x1 x2 x3
-
-ppmlhdfe y x1 x2 x3, nolog
 
 
 ** Example 1
