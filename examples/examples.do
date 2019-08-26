@@ -1,17 +1,5 @@
 set more off
-/*
-adopath ++ "..\github\ppml_hdfe_demo-master\src"
-adopath ++ "..\github\ftools-master\src"
-adopath ++ "..\github\reghdfe-master\src"
-adopath ++ "..\datasets\"
-*/
-
 clear
-
-which reghdfe
-which ftools
-which ppmlhdfe
-
 
 ** Example 1
 webuse ships, clear
@@ -19,12 +7,12 @@ webuse ships, clear
 
 ppmlhdfe acc op_75_79 co_65_69 co_70_74 co_75_79, a(ship) exp(service) irr nolog
 
+
 ** Example 2
 ppmlhdfe acc op_75_79 co_65_69, a(ship co_70_74 co_75_79) exp(service) irr nolog
 
 
-* Example 3
-
+** Example 3
 * same as
 * ppml_panel_sg trade fta if category == "TOTAL", ex(isoexp) im(isoimp) y(year)
 
@@ -33,7 +21,8 @@ cap egen imp=group(isoimp)
 cap egen exp=group(isoexp)
 ppmlhdfe trade fta, a(imp#year exp#year imp#exp) cluster(imp#exp) nolog
 
-* Example 4
+
+** Example 4
 
 use citations_example, clear
 estimates clear
