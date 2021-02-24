@@ -1,7 +1,7 @@
 # Primer on statistical separation in Poisson models
 
 - Jump to: [Readme](https://github.com/sergiocorreia/ppmlhdfe/blob/master/Readme.md) | [`ppmlhdfe` Paper](http://scorreia.com/research/ppmlhdfe.pdf) | [Separation Paper](http://scorreia.com/research/separation.pdf) | [Help File](http://scorreia.com/help/ppmlhdfe.html) | [Separation Primer](https://github.com/sergiocorreia/ppmlhdfe/blob/master/guides/separation_primer.md) | [Separation Benchmarks](https://github.com/sergiocorreia/ppmlhdfe/blob/master/guides/separation_benchmarks.md) | [Undocumented Options](https://github.com/sergiocorreia/ppmlhdfe/blob/master/guides/undocumented.md)
-- Sections: [Why?](#why-might-ml-estimates-not-exist) | [When?](#when-does-this-issue-occur) | [Solutions](#how-does-ppmlhdfe-actually-finds-the-separated-observations) | [∞](#to-infinity-and-beyond)
+- Sections: [Why?](#why-might-ml-estimates-not-exist) | [When?](#when-does-this-issue-occur) | [Solutions](#how-does-ppmlhdfe-actually-find-the-separated-observations) | [∞](#to-infinity-and-beyond)
 
 *(This guide is an abridged version of [Verifying the existence of maximum likelihood estimates for generalized linear models](http://scorreia.com/research/separation.pdf); please see the paper for a more detailed explanation. Package developers may also be interested in the [separation benchmarks](https://github.com/sergiocorreia/ppmlhdfe/blob/master/guides/separation_benchmarks.md) we have created that may be used as test cases.)*
 
