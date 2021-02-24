@@ -24,7 +24,7 @@ Now suppose we have a regressor `x` that is always zero when `y>0`, and non-nega
 
 **Question: what value of `b` minimizes the residuals `e = y-exp(a+xb)`?**
 
-Note that the value of `b` can only affect the residuals of the first two observations (because `x=0` elsewhere). Moreover, you can actually set `e=0` for these first two observations if you set `b=-∞` (minus infinity)!
+Note that the value of `b` can only affect the residuals of the first two observations (because `x=0` elsewhere). Moreover, you can actually achieve `e=0` for these first two observations if you set `b=-∞` (minus infinity)!
 
 In terms of the log likelihood, it is straightforward to verify that the log-likelihood contributions of the first two observations take their maximum possible value when `b=-∞`: `LL_i = -exp(-∞) + (-∞)(0) - 0 = 0`.
 
