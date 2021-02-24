@@ -242,7 +242,7 @@ The [separation paper](http://scorreia.com/research/separation.pdf) contains a d
 A few notes:
 
 - We can choose the weights `K` equal to `N0 / ϵ²` (where `N0` is the number of observations where `y=0`)
-- Running a regression with very high weights when `y>0` just ensures that on those observations `Xb=0` within some tolerance. This is known as the ["method of weigthing"](https://link.springer.com/article/10.1007/BF02510363).
+- Running a regression with very high weights when `y>0` just ensures that on those observations `Xb=0` within some tolerance. This is known as the ["method of weighting"](https://link.springer.com/article/10.1007/BF02510363).
 - The update `u = max(u, 0)` is known as a rectifier ([ReLU](https://en.wikipedia.org/wiki/Rectifier_(neural_networks))) in computer science and machine learning, and is the key trick that makes the algorithm work.
 - Note that by combining the method of weighting with the rectifier, we ensure that `Xb` can be used as a valid [certificate of separation](#when-does-this-issue-occur) `z`, once we achieve convergence.
 
