@@ -28,7 +28,7 @@ generate double x2 = (y==0)
 * [TEST]
 
 	* 0. Other variants that should give the same result
-	poisson y x1 if y > 0, robust
+	poisson y x1 if y > 0, robust iter(20)
 	di %10.2fc  -e(ll) - 1349028900000
 
 	ppmlhdfe y x1 if y > 0
@@ -41,7 +41,7 @@ generate double x2 = (y==0)
 	di %10.2fc  -e(ll) - 1349028900000
 	
 	* 1. Run benchmark
-	glm y x1 if y > 0, fam(poi) link(log) robust // e(ll) = -1349028940661
+	glm y x1 if y > 0, fam(poi) link(log) robust iter(20) // e(ll) = -1349028940661
 	di %10.2fc  -e(ll) - 1349028900000
 
 	trim_cons 1

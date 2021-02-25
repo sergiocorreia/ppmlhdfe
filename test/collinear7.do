@@ -80,7 +80,7 @@ generate double x2 = (y==0)
 * [TEST WITH X1 AND X2]
 
 	* 1. Run benchmark
-	poisson y x1 if y>0, robust
+	poisson y x1 if y>0, robust iter(20)
 	trim_cons 1
 	storedresults save benchmark e()
 

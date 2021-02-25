@@ -1,5 +1,5 @@
 {smcl}
-{* *! version 2.2.0 02aug2019}{...}
+{* *! version 2.3.0 25feb2021}{...}
 {vieweralsosee "[R] poisson" "help poisson"}{...}
 {vieweralsosee "[R] xtpoisson" "help xtpoisson"}{...}
 {vieweralsosee "[R] glm" "help glm"}{...}

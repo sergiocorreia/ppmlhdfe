@@ -16,7 +16,7 @@ input double trade byte(fta exporter trend c)
 end
 
 reghdfe fta, absorb(exporter##c.trend c) maxiter(10)
-assert e(rmse)==0
+assert e(rmse) <= 1e-12
 assert e(r2)==1
 
 * Benchmark
