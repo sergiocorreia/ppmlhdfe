@@ -1,4 +1,4 @@
-*! version 2.2.0 02aug2019
+*! version 2.3.0 25feb2021
 *! Authors: Sergio Correia, Paulo Guimarães, Thomas Zylkin
 *! URL: https://github.com/sergiocorreia/ppmlhdfe
 
@@ -21,8 +21,8 @@ program ppmlhdfe, eclass
 	}
 	else {
 		Cleanup 0
-		ms_get_version ftools, min_version("2.36.1")
-		ms_get_version reghdfe, min_version("5.7.2")
+		ms_get_version ftools, min_version("2.45.0")
+		ms_get_version reghdfe, min_version("6.0.2")
 		cap noi Estimate `0'
 		Cleanup `c(rc)'
 	}
@@ -70,9 +70,8 @@ program Version
 
 	error `rc'
 	ftools, check // compile
-	reghdfe, check // compile
-	ms_get_version ftools, min_version("2.34.0")
-	ms_get_version reghdfe, min_version("5.6.2")
+	ms_get_version ftools, min_version("2.45.0")
+	ms_get_version reghdfe, min_version("6.0.2")
 end
 
 

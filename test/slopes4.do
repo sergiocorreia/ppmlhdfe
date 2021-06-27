@@ -85,8 +85,9 @@ loc include_list ///
 	gen byte test_sample = e(sample)
 	assert test_sample == bench_sample 
 	storedresults compare benchmark e(), tol(1e-8) include(`include_list')
-*/
-
 
 storedresults drop benchmark
 exit
+
+*/
+

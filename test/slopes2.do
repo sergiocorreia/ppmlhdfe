@@ -25,7 +25,7 @@ end
 li, sepby(id1)
 
 reghdfe x, absorb(id1##c.z c) maxiter(100)
-assert e(rmse)==0
+assert e(rmse) <= 1e-12
 assert e(r2)==1
 
 * Benchmark

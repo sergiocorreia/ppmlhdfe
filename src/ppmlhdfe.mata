@@ -3,9 +3,9 @@
 * ===========================================================================
 
 // Include reghdfe (which in turn includes ftools) --------------------------
-	cap findfile "reghdfe.mata"
+	cap findfile "reghdfe5.mata"
 	if (_rc) {
-	    di as error "ppmlhdfe requires the {bf:reghdfe} package, which is not installed"
+	    di as error "ppmlhdfe requires the {bf:reghdfe} package (version 6 or newer), which is not installed"
 	    di as error `"    - install from {stata ssc install reghdfe:SSC}"'
 	    di as error `"    - install from {stata `"net install reghdfe, from("https://github.com/sergiocorreia/reghdfe/raw/master/src/")"':Github}"'
 	    exit 9
