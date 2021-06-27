@@ -4,7 +4,7 @@
 ![GitHub Release Date](https://img.shields.io/github/release-date/sergiocorreia/ppmlhdfe)
 ![GitHub commits since latest release (by date)](https://img.shields.io/github/commits-since/sergiocorreia/ppmlhdfe/latest)
 ![StataMin](https://img.shields.io/badge/stata-%3E%3D%2012.1-blue)
-[![DOI](https://zenodo.org/badge/63449974.svg)](https://zenodo.org/badge/latestdoi/63449974)
+[![DOI](https://zenodo.org/badge/172845643.svg)](https://zenodo.org/badge/latestdoi/172845643)
 
 - Jump to: [`citation`](#citation) [`references`](#references) [`install`](#installation)
 - Also see: [`ppmlhdfe` Paper](http://scorreia.com/research/ppmlhdfe.pdf) | [Separation Paper](http://scorreia.com/research/separation.pdf) | [Help File](http://scorreia.com/help/ppmlhdfe.html) | [Separation Primer](https://github.com/sergiocorreia/ppmlhdfe/blob/master/guides/separation_primer.md) | [Separation Benchmarks](https://github.com/sergiocorreia/ppmlhdfe/blob/master/guides/separation_benchmarks.md) | [Undocumented](https://github.com/sergiocorreia/ppmlhdfe/blob/master/guides/undocumented.md)
