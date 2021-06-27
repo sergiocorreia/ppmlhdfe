@@ -1,6 +1,11 @@
 # `ppmlhdfe`: Poisson pseudo-likelihood regression with multiple levels of fixed effects
 
-- Current version: `2.2.0 02aug2019`
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/sergiocorreia/ppmlhdfe?label=last%20version)
+![GitHub Release Date](https://img.shields.io/github/release-date/sergiocorreia/ppmlhdfe)
+![GitHub commits since latest release (by date)](https://img.shields.io/github/commits-since/sergiocorreia/ppmlhdfe/latest)
+![StataMin](https://img.shields.io/badge/stata-%3E%3D%2012.1-blue)
+[![DOI](https://zenodo.org/badge/63449974.svg)](https://zenodo.org/badge/latestdoi/63449974)
+
 - Jump to: [`citation`](#citation) [`references`](#references) [`install`](#installation)
 - Also see: [`ppmlhdfe` Paper](http://scorreia.com/research/ppmlhdfe.pdf) | [Separation Paper](http://scorreia.com/research/separation.pdf) | [Help File](http://scorreia.com/help/ppmlhdfe.html) | [Separation Primer](https://github.com/sergiocorreia/ppmlhdfe/blob/master/guides/separation_primer.md) | [Separation Benchmarks](https://github.com/sergiocorreia/ppmlhdfe/blob/master/guides/separation_benchmarks.md) | [Undocumented](https://github.com/sergiocorreia/ppmlhdfe/blob/master/guides/undocumented.md)
 
@@ -9,6 +14,7 @@
 
 ## Recent updates
 
+- **Version 2.3 27jun2021:** minor changes due to reghdfe's v6 update. Currently, ppmlhdfe is still using the code from reghdfe v5, which the new version ships with. A port is planned at some point in the future, but because some Mata functions changed their behavior, this needs to be done carefully.
 - **Version 2.2 02aug2019:** major speedups due to improved IRLS acceleration (see [page 7 of the paper](https://arxiv.org/pdf/1903.01690.pdf)) and due to faster separation checks.
 - **Version 2.1 04apr2019:** added experimental [step-halving](https://journal.r-project.org/archive/2011/RJ-2011-012/index.html). Not as useful for Poisson models as with other GLMs, so it's turned off by default. You can enable it by including the option `use_step_halving(1)`. Other options you can set are `step_halving_memory(0.9)` and `max_step_halving(2)` (default values in parenthesis).
 
