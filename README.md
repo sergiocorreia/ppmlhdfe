@@ -33,7 +33,7 @@ Sergio Correia, Paulo Guimarães, Thomas Zylkin: “Verifying the existence of m
 
 <ul>
 <li>
-Sergio Correia, Paulo Guimarães, Thomas Zylkin: “ppmlhdfe: Fast Poisson Estimation with High-Dimensional Fixed Effects”, 2019; <a href='http://arxiv.org/abs/1903.01690'>arXiv:1903.01690</a>.
+Sergio Correia, Paulo Guimarães, Thomas Zylkin. Fast Poisson estimation with high-dimensional fixed effects. The Stata Journal. 2020;20(1):95-115. doi:10.1177/1536867X20909691
 </li>
 </ul>
 
@@ -47,11 +47,17 @@ Sergio Correia, Paulo Guimarães, Thomas Zylkin: “ppmlhdfe: Fast Poisson Estim
   Eprint = {arXiv:1903.01633},
 }
 
-@Misc{ppmlhdfe,
+@article{ppmlhdfe,
   Author = {Correia, Sergio and Guimar{\~a}es, Paulo and Zylkin, Thomas},
-  Title = {{ppmlhdfe: Fast Poisson Estimation with High-Dimensional Fixed Effects}},
-  Year = {2019},
-  Eprint = {arXiv:1903.01690},
+  Title ={{Fast Poisson estimation with high-dimensional fixed effects}},
+  Journal = {The Stata Journal},
+  Volume = {20},
+  Number = {1},
+  Pages = {95-115},
+  Year = {2020},
+  DOI = {10.1177/1536867X20909691},
+  URL = {https://doi.org/10.1177/1536867X20909691},
+  eprint = {https://doi.org/10.1177/1536867X20909691}
 }
 ```
 
