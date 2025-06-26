@@ -1,4 +1,4 @@
-*! version 2.3.0 25feb2021
+*! version 2.3.1 26jun2025
 *! Authors: Sergio Correia, Paulo Guimarães, Thomas Zylkin
 *! URL: https://github.com/sergiocorreia/ppmlhdfe
 
@@ -155,8 +155,18 @@ program Estimate, eclass
 	
 	_get_diopts diopts options, `options' // store display options in `diopts', keep the rest in `options'
 	_assert ("`exposure'" != "") + ("`offset'" != "") < 2, msg("only one of offset() or exposure() can be specified") rc(198)
+	
 	if (inlist("`guess'", "", "default")) loc guess simple
-	_assert inlist("`guess'", "simple", "ols"), msg("guess() invalid; valid initial value options are simple and ols")
+	if !inlist("`guess'", "simple", "ols") {
+		loc guess = subinstr("`guess'", "var ", "variable ", 1)
+		_assert strpos("`guess'", "variable "), msg(`"guess() invalid; valid initial value options are "simple", "ols", and "variable <varname>""')
+		gettoken guess guessvar : guess
+		cap confirm numeric var `guessvar'
+		loc rc = c(rc)
+		assert inlist(`rc', 0, 111)
+		_assert (!`rc'), msg("guess(variable `guessvar') invalid; variable must exist and be numeric")
+	}
+	
 	if ("`irr'" != "") loc eform "eform" // Synonym for eform
 	
 	loc timeit = ("`timeit'"!="")
@@ -253,6 +263,7 @@ program Estimate, eclass
 	mata: glm.weight_var = "`exp'"
 	mata: glm.separation = tokens("`separation'") // fe relu simplex mu
 	mata: glm.initial_guess_method = "`guess'"
+	mata: glm.initial_guessvar = "`guessvar'"
 	if (`verbose') mata: glm.verbose = `verbose'
 	if ("`log'" == "nolog") mata: glm.log = 0
 	mata: glm.vcetype = "`vcetype'"

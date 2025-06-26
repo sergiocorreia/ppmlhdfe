@@ -62,6 +62,7 @@ class GLM
 
 	// Advanced estimation/solver parameters
 	`String'				initial_guess_method // Method used to determine initial values of -mu-
+	`String'				initial_guessvar // Variable used as initial value for -mu- ; only for guess(var ...)
 	`Boolean'				standardize_data
 	`Boolean'				remove_collinear_variables
 	`Boolean'				use_exact_solver
@@ -126,6 +127,7 @@ class GLM
 	target_inner_tol = 1e-9 // Target HDFE tolerance
 	start_inner_tol = 1e-4
 	initial_guess_method = "simple"
+	initial_guessvar = ""
 	min_ok = 1 // Set to 1 or at most 2... // BUGBUG: If this is below 2, then this test will fail: savefe_advanced.do (!!)
 	maxiter = 1000 // 10,000 ?
 
@@ -160,7 +162,7 @@ class GLM
 	assert_msg(0 < tolerance & tolerance <= 1, "tolerance must be a real between 0 and 1", 9001, 0)
 	assert_msg(0 < start_inner_tol & start_inner_tol <= 1, "start_inner_tol must be a real between 0 and 1", 9001, 0)
 
-	assert_in(initial_guess_method, ("simple", "ols"))
+	assert_in(initial_guess_method, ("simple", "ols", "variable"))
 	assert_msg(min_ok >= 1, "min_ok must be a positive integer", 9001, 0)
 	assert_msg(0 < maxiter)
 
@@ -376,8 +378,12 @@ class GLM
 		reghdfe_solve_ols(HDFE, data, b=., V=., N=., rank=., df_r=., mu=., ., "vce_none") // mu instead of resid, to save space
 		mu = exp(log(y :+ 1) - mu)
 	}
-	else {
+	else if (initial_guess_method == "simple") {
 		mu = 0.5 * (y :+ mean(y, HDFE.weight))
+	}
+	else {
+		mu = st_data(HDFE.sample, initial_guessvar)
+		assert_msg(!hasmissing(mu), sprintf("{err}guess() variable cannot have missing values"))
 	}
 
 	// Run IRLS algorithm (note that -mu- is both an input and output!)
