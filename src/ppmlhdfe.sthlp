@@ -64,7 +64,7 @@ such as confidence levels, number formats, etc.{p_end}
 
 {syntab:Optimization}
 {synopt:{opth tol:erance(#)}}criterion for convergence (default: 1e-8){p_end}
-{synopt:{opth guess(string)}}set rule for setting initial values; valid options are {it:simple} (default, almost always faster) and {it:ols}{p_end}
+{synopt:{opth guess(string)}}set rule for setting initial values; valid options are {it:simple} (default, almost always faster), {it:ols}; and {it: var <variable>}{p_end}
 
 {syntab:Diagnostic and undocumented}
 {synopt :{opt v:erbose(#)}}amount of debugging information to show; use {it:v(1)} or higher to view additional information;
