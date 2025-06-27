@@ -42,11 +42,24 @@
 	which ppmlhdfe
 	**ppmlhdfe price, a(foreign)
 
+	reghdfe price weight, a(turn)
+	keep if e(sample)
+
 	ppmlhdfe price weight, a(turn) d
 	predict mu, mu
+	drop if mi(mu)
+
 	ppmlhdfe price weight, a(turn) guess(simple)
 	ppmlhdfe price weight, a(turn) guess(ols)
-	ppmlhdfe price weight, a(turn) guess(ols)
+	ppmlhdfe price weight, a(turn) guess(var mu)
+	ppmlhdfe price weight, a(turn) guess(var mu) use_exact_partial(1) use_exact_solver(1) start_inner_tol(1e-8)
+	ppmlhdfe price weight, a(turn) guess(var mu) standardize_data(0)
+
+exit
+
+	ppmlhdfe price weight, a(turn) guess(var mu) use_exact_partial(1) use_exact_solver(1) tolerance(1e-10) itolerance(1e-10) start_inner_tol(1e-10) standardize_data(0)
+
+exit
 	gen c1 = 1
 	gen c2 = 0
 	gen c3 = .

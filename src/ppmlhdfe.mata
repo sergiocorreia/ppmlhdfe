@@ -383,6 +383,7 @@ class GLM
 	}
 	else {
 		mu = st_data(HDFE.sample, initial_guessvar)
+		if (standardize_data) (void) reghdfe_standardize(mu)
 		assert_msg(!hasmissing(mu), sprintf("{err}guess() variable cannot have missing values"))
 	}
 
