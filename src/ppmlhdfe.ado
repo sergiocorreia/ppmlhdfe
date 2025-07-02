@@ -1,4 +1,4 @@
-*! version 2.3.1 26jun2025
+*! version 2.3.2 02jul2025
 *! Authors: Sergio Correia, Paulo Guimarães, Thomas Zylkin
 *! URL: https://github.com/sergiocorreia/ppmlhdfe
 
@@ -285,7 +285,15 @@ program Estimate, eclass
 	mata: glm.validate_parameters()
 	mata: glm.init_fixed_effects()
 	mata: glm.init_variables()
-	mata: glm.init_separation()
+	* Intercept error when there are no obs. left; provide helpful message
+	cap noi mata: glm.init_separation()
+	loc rc = c(rc)
+	if (`rc'==2001) {
+		di as text "Insufficient observations after dropping separated obs."
+		di as text `"To view the "direction of recession" (Geyer 2009), type e.g.:"'
+		di as text ". ppmlhdfe ..., absorb(...) tagsep(sep) zvar(z) r2"
+	}
+	if (`rc') exit `rc'
 	if ("`tagsep'" != "") {
 		format %1.0f `tagsep'
 		format %10.2g `zvarname'

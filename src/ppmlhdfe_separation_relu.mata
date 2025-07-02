@@ -14,6 +14,7 @@ mata:
 							  `String'			weight_var,
 							  `Real'			target_inner_tol,
 							  `Real'			tol,
+							  `Real'			zero_tol,
 							  `Integer'			maxiter,
 							  `Varname'			sepname,
 							  `Varname'			zname,
@@ -184,7 +185,7 @@ mata:
 		//   (there might be separated obs. when e_i=0; see the proof for more details on why this works)
 		// - This case is particularly useful in accelerating convergence when there is *no separation*, see "example_negative_residuals.do"
 		
-		_edittozerotol(resid, 1e-8)
+		_edittozerotol(resid, zero_tol) // Maybe we want to link this value with tol? so this is e.g. tol/100 ?
 		threshold = 0 // delta might be better, due to numerical errors
 		if (min(resid[boundary_sample]) >= threshold) {
 			idx = select(boundary_sample, resid[boundary_sample] :> delta)
@@ -223,6 +224,8 @@ mata:
 	if (verbose > -1) printf(`"{txt}(ReLU method dropped %g {browse "http://scorreia.com/research/separation.pdf":separated observation%s} in %g iterations)\n"', num_sep, num_sep > 1 ? "s" : "", iter)
 	separated_obs = select(boundary_sample, xbd[boundary_sample] :> 0)
 	relu_post_results(HDFE, sepname, zname, debug, report_r2, separated_obs, xbd, v) // Do this BEFORE trimming the data!
+	if (report_r2) return(num_sep) // exit early if we are just printing the certificate of separation
+
 	non_separated_obs = trim_separated_obs(HDFE, y, x, weight_type, weight_var, true_w, separated_obs, verbose)
 	remove_collinears(HDFE, target_inner_tol, x, k, stdev_x, weight_type, weight_var, true_w, verbose)
 	return(num_sep) // Also returns ok_obs_mask and ok_var_mask

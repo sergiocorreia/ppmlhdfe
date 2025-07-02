@@ -57,6 +57,7 @@ Also note that all of these Mata options must be set in the form `option(value)`
 ### IR/ReLU separation options
 
 - `relu_tol(1e-4)`: used to set internal tolerances. For instance, calls to reghdfe will be set with tolerance equal to `relu_tol/10`.
+- `relu_zero_tol(1e-8)`: ppmlhdfe relies on `_edittozerotol` to convert values very close to zero to absolute zero, as required by the algorithm. This is necessary when dealing with fixed effects, which always produce floating-point responses. If you want to minimize numerical issues, you can use a stricter `relu_tol` while also setting `relu_zero_tol` to a stricter value (stricter = closer to zero).
 - `relu_maxiter(100)`: maximum number of iterations in ReLU step. If exceeded, the step will stop but an error will not be raised
 - `relu_strict(0)`: if set to 1, will raise an error if `relu_maxiter` is exceeded.
 - `relu_accelerate(0)`: if set to 1, it will slightly increase the weights of observations that are persistently negative, usually leading to faster convergence. This has been disabled by default as it tends to slowdown the other acceleration trick used (explained in the paper; see the line `utilde = u + utilde - u_last`).

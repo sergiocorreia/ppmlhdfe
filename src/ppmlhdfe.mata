@@ -86,6 +86,7 @@ class GLM
 	`Integer'				simplex_maxiter
 	
 	`Real'					relu_tol
+	`Real'					relu_zero_tol
 	`Real'					relu_maxiter
 	`Boolean'				relu_report_r2
 	`String'				relu_sepvarname
@@ -139,6 +140,7 @@ class GLM
 	simplex_maxiter = 1000
 
 	relu_tol = 1e-4
+	relu_zero_tol = 1e-8
 	relu_maxiter = 100
 	relu_report_r2 = relu_debug = 0
 	relu_zvarname = relu_sepvarname = ""
@@ -321,7 +323,7 @@ class GLM
 	check_separation = anyof(separation, "relu")
 	if (check_separation) {
 		num_drop = relu_fix_separation(HDFE, y, x, k, stdev_x, true_w, weight_type, weight_var, target_inner_tol,
-		                               relu_tol, relu_maxiter,
+		                               relu_tol, relu_zero_tol, relu_maxiter,
 		                               relu_sepvarname, relu_zvarname, relu_debug, relu_report_r2,
 		                               non_separated_obs=., relu_strict, relu_accelerate, verbose)
 		if (num_drop & rows(offset)) offset = offset[non_separated_obs]
