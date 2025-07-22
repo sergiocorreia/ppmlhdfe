@@ -25,7 +25,7 @@ set linesize 150
 
 * [TEST] No absorb
 	loc lhs price
-	loc rhs weight gear length
+	loc rhs weight gear_ratio length
 	loc absvars c
 
 	* 1. Run benchmark

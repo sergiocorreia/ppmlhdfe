@@ -22,10 +22,6 @@
 	loc i 0
 	foreach file of local files {
 		loc ++i
-		set trace off
-		set tracedepth 1
-		if ("`file'" == "07.csv") noi di as error "TODO: match the 07 case (the hardest one) in all obs."
-		*if ("`file'" == "07.csv") continue
 		loc fn "`csv_path'/`file'"
 		di as text "`fn'"
 		insheet using "`fn'", clear comma names double
@@ -39,18 +35,16 @@
 		cap unab ids : id*
 		loc absorb_opt = cond("`ids'"=="", "noabsorb", "absorb(`ids')")
 
-		*gsort -y
-		*loc cmd `"tagsep y `xs', a(`ids') gen(sep_relu) r2 z(z) tol(1e-4)"'
-		loc cmd `"ppmlhdfe y `xs', a(`ids') tagsep(sep_relu) r2 zvar(z) relu_tol(1e-4) keepsing v(-1)"'
+		loc tolerances = cond("`file'" == "07.csv", "relu_zero_tol(1e-10) relu_maxiter(1000)", "")
+		loc cmd `"ppmlhdfe y `xs', a(`ids') tagsep(sep_relu) r2 zvar(z) keepsing v(-1) `tolerances'"'
 		di as input `"`cmd'"'
-		
+
 		timer on 1
 		timer on 2
 		`prefix' `cmd'
 		loc rc`i' = c(rc)
 		timer off 2
 		timer off 1
-		*if ("`file'"=="05.csv") asd
 
 		qui timer list 2
 		return list
@@ -66,7 +60,9 @@
 		* We can NEVER detect false positives
 		*assert separated >= sep_relu
 		* We could fail to detect some cases in extreme datasets
-		`prefix' _assert separated == sep_relu | ("`file'" == "07.csv"), rc(10001) // BUGBUG !!!
+		*`prefix' _assert separated == sep_relu | ("`file'" == "07.csv"), rc(10001) // BUGBUG !!!
+		`prefix' _assert separated == sep_relu, rc(10001) // BUGBUG !!!
+
 		loc rc`i' = c(rc)
 		if (c(rc)) continue
 		
