@@ -52,6 +52,8 @@
 	ppmlhdfe price weight, a(turn) guess(simple)
 	ppmlhdfe price weight, a(turn) guess(ols)
 	ppmlhdfe price weight, a(turn) guess(var mu)
+	ppmlhdfe price weight, a(turn) guess(var mu) use_exact_partial(1) use_exact_solver(1) start_inner_tol(1e-8) standardize_data(0)
+
 	ppmlhdfe price weight, a(turn) guess(var mu) use_exact_partial(1) use_exact_solver(1) start_inner_tol(1e-8)
 	ppmlhdfe price weight, a(turn) guess(var mu) standardize_data(0)
 
