@@ -8,12 +8,13 @@
 
 - Jump to: [`citation`](#citation) [`references`](#references) [`install`](#installation)
 - About `ppmlhdfe`: [Github Readme](https://github.com/sergiocorreia/ppmlhdfe/tree/master?tab=readme-ov-file#ppmlhdfe-poisson-pseudo-likelihood-regression-with-multiple-levels-of-fixed-effects) | [Working Paper](https://arxiv.org/abs/1903.01690) | [Stata Journal](https://doi.org/10.1177/1536867X20909691) | [Help File](http://scorreia.com/help/ppmlhdfe.html) | [Undocumented Options](https://github.com/sergiocorreia/ppmlhdfe/blob/master/guides/undocumented.md)
-- About Nonexistence: [Working Paper](https://arxiv.org/abs/1903.01633) | [Primer](https://github.com/sergiocorreia/ppmlhdfe/blob/master/guides/nonexistence_primer.md) | [Examples](https://github.com/sergiocorreia/ppmlhdfe/blob/master/guides/nonexistence_examples.md) [Software Benchmarks](https://github.com/sergiocorreia/ppmlhdfe/blob/master/guides/nonexistence_benchmarks.md) | [Further Reading](https://github.com/sergiocorreia/ppmlhdfe/blob/master/guides/further_reading.md)
+- About nonexistence of estimates: [Working Paper](https://arxiv.org/abs/1903.01633) | [Primer](https://github.com/sergiocorreia/ppmlhdfe/blob/master/guides/nonexistence_primer.md) | [Examples](https://github.com/sergiocorreia/ppmlhdfe/blob/master/guides/nonexistence_examples.md) | [Software Benchmarks](https://github.com/sergiocorreia/ppmlhdfe/blob/master/guides/nonexistence_benchmarks.md)
 
 **ppmlhdfe** is a Stata package that implements Poisson pseudo-maximum likelihood regressions (PPML) with multi-way fixed effects, as described in [Correia, Guimarães, Zylkin (2019a)](http://scorreia.com/research/ppmlhdfe.pdf). The estimator employed is robust to statistical separation and convergence issues, due to the procedures developed in [Correia, Guimarães, Zylkin (2019b)](http://scorreia.com/research/separation.pdf).
 
 ## Recent updates
 
+- August 2025: added [comprehensive examples](https://github.com/sergiocorreia/ppmlhdfe/blob/master/guides/nonexistence_examples.md) of how `ppmlhdfe` handles nonexistence of ML estimates, including for Logit and Multinomial Logit models
 - **Version 2.3.1 26jun2025:** minor change: add `guess(variable <varname>)`` option as an alternative initialization method
 - **Version 2.3 27jun2021:** minor changes due to reghdfe's v6 update. Currently, ppmlhdfe is still using the code from reghdfe v5, which the new version ships with. A port is planned at some point in the future, but because some Mata functions changed their behavior, this needs to be done carefully.
 - **Version 2.2 02aug2019:** major speedups due to improved IRLS acceleration (see [page 7 of the paper](https://arxiv.org/pdf/1903.01690.pdf)) and due to faster separation checks.
