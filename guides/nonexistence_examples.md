@@ -1,8 +1,8 @@
 # Examples of nonexistence of estimates for Poisson, Logit, and Multinomial Logit models
 
 - About `ppmlhdfe`: [Github Readme](https://github.com/sergiocorreia/ppmlhdfe/tree/master?tab=readme-ov-file#ppmlhdfe-poisson-pseudo-likelihood-regression-with-multiple-levels-of-fixed-effects) | [Working Paper](https://arxiv.org/abs/1903.01690) | [Stata Journal](https://doi.org/10.1177/1536867X20909691) | [Help File](http://scorreia.com/help/ppmlhdfe.html) | [Undocumented Options](https://github.com/sergiocorreia/ppmlhdfe/blob/master/guides/undocumented.md)
-- About Nonexistence: [Working Paper](https://arxiv.org/abs/1903.01633) | [Primer](https://github.com/sergiocorreia/ppmlhdfe/blob/master/guides/nonexistence_primer.md) | [Examples](https://github.com/sergiocorreia/ppmlhdfe/blob/master/guides/nonexistence_examples.md) [Software Benchmarks](https://github.com/sergiocorreia/ppmlhdfe/blob/master/guides/nonexistence_benchmarks.md) | [Further Reading](https://github.com/sergiocorreia/ppmlhdfe/blob/master/guides/further_reading.md)
-- Sections: [Logit](#logit--logistic) | [Multinomial Logit](#multinomial-logit) | [Poisson](#poisson) | [Seventeen Examples](#seventeen-poisson-examples)
+- About Nonexistence: [Working Paper](https://arxiv.org/abs/1903.01633) | [Primer](https://github.com/sergiocorreia/ppmlhdfe/blob/master/guides/nonexistence_primer.md) | [Examples](https://github.com/sergiocorreia/ppmlhdfe/blob/master/guides/nonexistence_examples.md) | [Software Benchmarks](https://github.com/sergiocorreia/ppmlhdfe/blob/master/guides/nonexistence_benchmarks.md)
+- Sections: [Logit](#logit--logistic) | [Multinomial Logit](#multinomial-logit) | [Poisson](#poisson) | [Seventeen Examples](#seventeen-poisson-examples) | [References](#references)
 
 *(These examples complement [Verifying the existence of maximum likelihood estimates for generalized linear models](https://arxiv.org/abs/1903.01633); please see the links above for related guides.)*
 
@@ -31,7 +31,7 @@ Here, our algorithm flags all eight observations as perfectly predicted and drop
 . logit y x
 outcome = x > 40 predicts data perfectly
 
-. reshape_logit y x
+. reshape_logit y x // user developed ado-file; located in the /code folder
 . ppmlhdfe y x c, absorb(i) vce(cluster i) // insufficient obs after dropping the 8
 (ReLU method dropped 8 separated observations in 1 iterations)
 
@@ -66,7 +66,7 @@ Absorbing 1 HDFE group                            F(   2,      6) =   6.76e+16
        _cons |   .3125001   1.32e-09  2.4e+08   0.000     .3125001    .3125001
 ```
 
-Here we can observe the two directions of recession, and thus `{βx, βc} = lim (a -> ∞) {-0.25 a, 1.25 a}`. In the accompanying [Stata code](code/1-agresti-eight-points.do) we also discuss how to perform inference on these estimates, as even though point estimates do not exist, P-Values can still be recovered (as so can confidence intervals, as pointed by Agresti 2012 and Geyer 2025).
+Here we can observe the two directions of recession, and thus `{βx, βc} = lim (a -> ∞) {-0.25 a, 1.25 a}`. In the accompanying [Stata code](code/1-agresti-eight-points.do) we also discuss how to perform inference on these estimates, as even though point estimates do not exist, P-Values can still be recovered (and so can confidence intervals, as pointed by Agresti 2012 and Geyer 2025).
 
 
 ### Agresti's Ten-Point Example
@@ -86,7 +86,7 @@ This example is from page 186 section 5.7.1 of "Foundations of Linear and Genera
 
 The outcome variable is the histology grade of a tumor (low=0, 1=high) and there are three regressors. `x1` is an indicator variable ("neovasculization with coding 0 for absent and 1 for present"), `x2` is a positive integer ("pulsality index of arteria uterina"), and `x3` is a positive real ("endometrium height").
 
-A Logit regression on this data exhibits quasi-complete separation, as all cases of `y=1` occur when `x1=1` (so x1 perfectly predicts cancer in the sample, but when `x=0` there are obs. both with and without cancer).
+A Logit regression on this data exhibits quasi-complete separation, as all cases of `y=1` occur when `x1=1` (so x1 perfectly predicts a high histology grade in the sample, but when `x=0` there are obs. both with and without cancer).
 
 Stata's `logit` estimate detects this and excludes the 13 obs where `x1=1`:
 
@@ -198,9 +198,9 @@ Reptile      |
 // omitted
 ```
 
-As we can see here, the Reptile category as infinite estimates for the coefficients of each lake (values of 15, etc. approach infinite once exponentiated).
+As we can see here, the Reptile category as infinite estimates for the coefficients of each lake (values of 15-16 approach infinity once exponentiated).
 
-To estimate it with our algorithm we will first apply the Multinomial-Poisson transform:
+To estimate it with our algorithm we will first note there are five possible categories for the outcome variable, and then apply the Multinomial-Poisson transform.
 
 ```stata
 gen obs = _n // Record original obs.
@@ -243,7 +243,7 @@ From this output, we can see three things:
 
 1. The ReLu method dropped 17 observations as they were perfectly separated.
 2. After dropping these observations, three variables with infinite estimates are now omitted due to collinearity
-3. Other estimates, which did not had infinite estimates and were previously reported incorrect values, now report the correct estimates (the same values one would obtain had the software package been able to correctly estimate the respective infinite coefficients).
+3. Other estimates, which did not have infinite estimates and were previously reported incorrect values, now report the correct estimates (the same values one would obtain had the software package been able to correctly estimate the respective infinite coefficients).
 
 
 ## Poisson
@@ -277,12 +277,12 @@ Throughout our work developing `ppmlhdfe`, we have come across several datasets 
 
 We have now compiled a suite of seventeen of these datasets, which we hope can be useful for future researchers that want to test their algorithms or software with datasets were nonexistence occurs.
 
-To ease the burnen of any users, we have standardized these datasets in the following way:
+To ease the burden of any users, we have standardized these datasets in the following way:
 
-1. All all seventeen cases are stored as CSV files with a header indicating the variable names.
+1. All seventeen cases are stored as CSV files with a header indicating the variable names.
 1. In all cases, `y` represents the outcome variable; the variables starting with `x` represent the regressors; and any variables starting with `id` correspond to categorical variables representing fixed effects.
 1. The indicator `separated` equals 1 for separated observations.
-1. Lastly, some datasets were fairly large although separation was only caused by a small fraction of the total observations. We have trimmed the observations on these data to speed up estimation and reduce any bandwidth costs.
+1. Lastly, some datasets were fairly large, although separation was only caused by a small fraction of the total observations. We have trimmed the observations on these data to speed up estimation and reduce any bandwidth costs.
 
 For instance, let's look at the first example dataset, [`01.csv`](separation_datasets/01.csv), which is based on country export-import data:
 
@@ -351,13 +351,21 @@ Absorbing 2 HDFE groups                           F(   2,     79) =          .
 <some output omitted...>
 ```
 
-As we can see, `ppmlhdfe` drops two observations as well as the variable `x2`. After obtaining the certificate of separation (with the `zvar()` option), we regress this `z` variable against the regresors and observe that all coefficients have estimates of zero except for `x2` with an estimate of 1. This indicates that `b_{x2} -> +∞` as it perfectly predicts two observations where `y=0`, without affecting the estimates of any other variable.
+As we can see, `ppmlhdfe` drops two observations as well as the variable `x2`. After obtaining the certificate of separation (with the `zvar()` option), we regress this `z` variable against the regresors and observe that all coefficients have estimates of zero except for `x2` with an estimate of 1. This indicates that `b_{x2} -> +∞` as it perfectly predicts two observations where `y=0`, without affecting the estimates of any other variables.
 
 If you are a Stata user, you can run the script [`6-cgz-poisson-benchmarks.do`](code/6-cgz-poisson-benchmarks.do) in order to run all seventeen tests. Alternatively, it should be feasible to construct an equivalent for-loop in any statistical programming language.
 
 ## References
 
-TODO!
-
-<!-- 
-"Likelihood inference in exponential families and directions of recession" (Geyer 2009) -->
+- Palmgren (1981). "Models for the analysis of contingency tables with quantitative outcome variables". Biometrika, 68(3):563–576. https://www.jstor.org/stable/2335606
+- Baker (1994). "The Multinomial-Poisson Transformation". Journal of the Royal Statistical Society: Series D (The Statistician), 43(4):495–504. https://www.jstor.org/stable/2348134
+- Guimarães (2004). "Understanding the Multinomial-Poisson Transformation". Stata Journal, 4(3):290–299. https://doi.org/10.1177/1536867X0400400304
+- Correia, Guimarães, and Zylkin (2020). "Fast Poisson estimation with high-dimensional fixed effects". Stata Journal, 20(1):95–115. https://doi.org/10.1177/1536867X20909691
+- Correia, Guimarães, and Zylkin (2019). "Verifying the existence of maximum likelihood estimates for generalized linear models". arXiv Working Paper: https://arxiv.org/abs/1903.01633
+- Kosmidis and Schumacher (2021). "`detectseparation`: Detect and Check for Separation and Infinite Maximum Likelihood Estimates". https://cran.r-project.org/web/packages/detectseparation/
+- Kosmidis (2017). "`brglm2`: Bias Reduction in Multinomial Models". https://cran.r-project.org/web/packages/brglm2/vignettes/multinomial.html
+- Geyer (2009). "Likelihood Inference in Exponential Families and Directions of Recession." University of Minnesota, School of Statistics. http://www.stat.umn.edu/geyer/5421/notes/infinity.pdf
+- Geyer (2025). Course notes. https://www.stat.umn.edu/geyer/5421/notes/infinity.html#complete-separation-example-of-agresti
+- Agresti (2012). "Categorical Data Analysis", 3rd Edition. Wiley.
+- Agresti (2015). "Foundations of Linear and Generalized Linear Models." Wiley.
+- Heinze and Schemper (2002). "A solution to the problem of separation in logistic regression". Statistics in Medicine, 21(16):2409–2419.
