@@ -2,7 +2,7 @@
 
 - About `ppmlhdfe`: [Github Readme](https://github.com/sergiocorreia/ppmlhdfe/tree/master?tab=readme-ov-file#ppmlhdfe-poisson-pseudo-likelihood-regression-with-multiple-levels-of-fixed-effects) | [Working Paper](https://arxiv.org/abs/1903.01690) | [Stata Journal](https://doi.org/10.1177/1536867X20909691) | [Help File](http://scorreia.com/help/ppmlhdfe.html) | [Undocumented Options](https://github.com/sergiocorreia/ppmlhdfe/blob/master/guides/undocumented.md)
 - About Nonexistence: [Working Paper](https://arxiv.org/abs/1903.01633) | [Primer](https://github.com/sergiocorreia/ppmlhdfe/blob/master/guides/nonexistence_primer.md) | [Examples](https://github.com/sergiocorreia/ppmlhdfe/blob/master/guides/nonexistence_examples.md) [Software Benchmarks](https://github.com/sergiocorreia/ppmlhdfe/blob/master/guides/nonexistence_benchmarks.md) | [Further Reading](https://github.com/sergiocorreia/ppmlhdfe/blob/master/guides/further_reading.md)
-- Sections: [UPDATETHIS](#why-might-ml-estimates-not-exist) | [When?](#when-does-this-issue-occur) | [Solutions](#how-does-ppmlhdfe-actually-find-the-separated-observations) | [∞](#to-infinity-and-beyond)
+- Sections: [Logit](#logit--logistic) | [Multinomial Logit](#multinomial-logit) | [Poisson](#poisson) | [Seventeen Examples](#seventeen-poisson-examples)
 
 *(These examples complement [Verifying the existence of maximum likelihood estimates for generalized linear models](https://arxiv.org/abs/1903.01633); please see the links above for related guides.)*
 
@@ -271,7 +271,7 @@ mata: (vars, strofreal(directions))[idx, .]
 As we can see, we are able to recover Geyer's "direction of recession" by employing the IR algorithm, which has the added advantage of being easy to implement, and not requiring exact algebra routines.
 
 
-### Seventeen Examples
+## Seventeen Poisson Examples
 
 Throughout our work developing `ppmlhdfe`, we have come across several datasets exhibiting nonexistence issues with Poisson regressions. Some of these datasets were compiled from our own work on other research papers, others were submitted by users of earlier versions of the package who were experiencing convergence issues, and a few were manually designed to test some corner cases that might trip common separation detection algorithms.
 
