@@ -364,7 +364,7 @@ If you are a Stata user, you can run the script [`6-cgz-poisson-benchmarks.do`](
 - Correia, Guimarães, and Zylkin (2019). "Verifying the existence of maximum likelihood estimates for generalized linear models". arXiv Working Paper: https://arxiv.org/abs/1903.01633
 - Kosmidis and Schumacher (2021). "`detectseparation`: Detect and Check for Separation and Infinite Maximum Likelihood Estimates". https://cran.r-project.org/web/packages/detectseparation/
 - Kosmidis (2017). "`brglm2`: Bias Reduction in Multinomial Models". https://cran.r-project.org/web/packages/brglm2/vignettes/multinomial.html
-- Geyer (2009). "Likelihood Inference in Exponential Families and Directions of Recession." University of Minnesota, School of Statistics. http://www.stat.umn.edu/geyer/5421/notes/infinity.pdf
+- Geyer (2009). "Likelihood Inference in Exponential Families and Directions of Recession." University of Minnesota, School of Statistics. https://arxiv.org/pdf/0901.0455
 - Geyer (2025). Course notes. https://www.stat.umn.edu/geyer/5421/notes/infinity.html#complete-separation-example-of-agresti
 - Agresti (2012). "Categorical Data Analysis", 3rd Edition. Wiley.
 - Agresti (2015). "Foundations of Linear and Generalized Linear Models." Wiley.
