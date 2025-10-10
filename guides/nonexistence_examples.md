@@ -2,7 +2,7 @@
 
 - About `ppmlhdfe`: [Github Readme](https://github.com/sergiocorreia/ppmlhdfe/tree/master?tab=readme-ov-file#ppmlhdfe-poisson-pseudo-likelihood-regression-with-multiple-levels-of-fixed-effects) | [Working Paper](https://arxiv.org/abs/1903.01690) | [Stata Journal](https://doi.org/10.1177/1536867X20909691) | [Help File](http://scorreia.com/help/ppmlhdfe.html) | [Undocumented Options](https://github.com/sergiocorreia/ppmlhdfe/blob/master/guides/undocumented.md)
 - About Nonexistence: [Working Paper](https://arxiv.org/abs/1903.01633) | [Primer](https://github.com/sergiocorreia/ppmlhdfe/blob/master/guides/nonexistence_primer.md) | [Examples](https://github.com/sergiocorreia/ppmlhdfe/blob/master/guides/nonexistence_examples.md) | [Software Benchmarks](https://github.com/sergiocorreia/ppmlhdfe/blob/master/guides/nonexistence_benchmarks.md)
-- Sections: [Logit](#logit--logistic) | [Multinomial Logit](#multinomial-logit) | [Poisson](#poisson) | [Seventeen Examples](#seventeen-poisson-examples) | [References](#references)
+- Sections: [Logit](#logit--logistic) | [Multinomial Logit](#multinomial-logit) | [Poisson](#poisson) | [Seventeen Poisson Examples](#seventeen-poisson-examples) | [Tobit](#tobit-type-i-tobit-model) | [References](#references)
 
 *(These examples complement [Verifying the existence of maximum likelihood estimates for generalized linear models](https://arxiv.org/abs/1903.01633); please see the links above for related guides.)*
 
