@@ -355,6 +355,136 @@ As we can see, `ppmlhdfe` drops two observations as well as the variable `x2`. A
 
 If you are a Stata user, you can run the script [`6-cgz-poisson-benchmarks.do`](code/6-cgz-poisson-benchmarks.do) in order to run all seventeen tests. Alternatively, it should be feasible to construct an equivalent for-loop in any statistical programming language.
 
+## Tobit (Type I Tobit model)
+
+Santos Silva and Tenreyro (2011) discuss a Tobit model left-censored at zero that suffers from nonexistence. In particular the model's likelihood is maximized when `b_{z} -> +∞`; i.e. as the coefficient for `z` approaches infinity.
+
+```stata
+. use http://personal.lse.ac.uk/tenreyro/mock
+
+. tobit y x z, ll(0)
+<some output omitted...>
+Tobit regression                                    Number of obs     =    100
+                                                           Uncensored =     96
+Limits: Lower =    0                                    Left-censored =      4
+        Upper = +inf                                   Right-censored =      0
+
+                                                    LR chi2(2)        =   8.52
+                                                    Prob > chi2       = 0.0141
+Log likelihood = -191.09891                         Pseudo R2         = 0.0218
+
+------------------------------------------------------------------------------
+           y | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+           x |   .2096114   .1752055     1.20   0.234    -.1380783     .557301
+           z |  -10.18944   382.0137    -0.03   0.979    -768.2833    747.9044
+       _cons |   1.703695   .1754911     9.71   0.000     1.355438    2.051951
+-------------+----------------------------------------------------------------
+     var(e.y)|   3.003131    .435032                      2.252828    4.003321
+------------------------------------------------------------------------------
+```
+
+In this example, the model "converged" for  `b_{z}=-10`, but using a stricter tolerance would return quite different values:
+
+
+```stata
+.  tobit y x z, ll(0) nrtol(1e-12)
+<some output omitted...>
+Tobit regression                                    Number of obs     =    100
+                                                           Uncensored =     96
+Limits: Lower =    0                                    Left-censored =      4
+        Upper = +inf                                   Right-censored =      0
+
+                                                    LR chi2(2)        =   8.52
+                                                    Prob > chi2       = 0.0141
+Log likelihood = -191.09891                         Pseudo R2         = 0.0218
+
+------------------------------------------------------------------------------
+           y | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+           x |   .2095681   .1752046     1.20   0.235    -.1381197    .5572558
+           z |  -14.32966   463697.2    -0.00   1.000    -920206.2    920177.6
+       _cons |   1.703772   .1754901     9.71   0.000     1.355518    2.052027
+-------------+----------------------------------------------------------------
+     var(e.y)|   3.003099   .4350229                      2.252811    4.003267
+------------------------------------------------------------------------------
+```
+
+In this specific example, the `ppml` comamnd can detect this issue:
+
+```stata
+. ppml y x z, check
+
+note: checking the existence of the estimates
+
+Number of regressors excluded to ensure that the estimates exist: 1
+Excluded regressors:  z
+Number of observations excluded: 2
+```
+
+Although as discussed in our [discussion of software packages](https://github.com/sergiocorreia/ppmlhdfe/blob/master/guides/nonexistence_benchmarks.md), this is only able to detect some specific instances of separation.
+
+Instead, a more general alternative could be to repurpose `ppmlhdfe` to detect and exclude separation (notice how the tobit regression omits `z` due to collinearity, and also the two separated observations):
+
+```stata
+. ppmlhdfe y x z
+(simplex method dropped 2 separated observations)
+note: 1 variable omitted because of collinearity: z
+<regression output omitted...>
+
+. tobit y x z if e(sample), ll(0)
+note: z omitted because of collinearity.
+<some output omitted...>
+Tobit regression                                    Number of obs     =     98
+                                                           Uncensored =     96
+Limits: Lower =    0                                    Left-censored =      2
+        Upper = +inf                                   Right-censored =      0
+
+                                                    LR chi2(1)        =   1.42
+                                                    Prob > chi2       = 0.2331
+Log likelihood = -191.09891                         Pseudo R2         = 0.0037
+
+------------------------------------------------------------------------------
+           y | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+           x |   .2095681   .1752046     1.20   0.235    -.1381645    .5573006
+           z |          0  (omitted)
+       _cons |   1.703772   .1754901     9.71   0.000     1.355473    2.052072
+-------------+----------------------------------------------------------------
+     var(e.y)|   3.003099   .4350229                      2.252728    4.003415
+------------------------------------------------------------------------------
+```
+
+Finally, notice that we could even use ppmlhdfe's diagnostic tool to identify the specific directions-of-recession, and what exact linear combination of regressors is driving the separation:
+
+```stata
+. ppmlhdfe y x z, tagsep(sep) zvar(z) r2
+ (identifying separated observations instead of running regressions)
+<some output omitted...>
+(ReLU method dropped 2 separated observations in 1 iterations)
+
+Verifying certificate of separation:
+. reghdfe z x z, noabsorb
+HDFE Linear regression                            Number of obs   =        100
+Absorbing 1 HDFE group                            F(   2,     97) =          .
+                                                  Prob > F        =          .
+                                                  R-squared       =     1.0000
+                                                  Adj R-squared   =     1.0000
+                                                  Within R-sq.    =     1.0000
+                                                  Root MSE        =     0.0000
+
+------------------------------------------------------------------------------
+           z | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+           x |   2.08e-17   4.38e-17     0.48   0.636    -6.62e-17    1.08e-16
+           z |          1   3.11e-16  3.2e+15   0.000            1           1
+       _cons |   5.86e-17   4.40e-17     1.33   0.186    -2.87e-17    1.46e-16
+------------------------------------------------------------------------------
+```
+
+As shown in the last regression, `ppmlhdfe` identifies that only one coefficient does not exist, as it has a non-zero coefficient.
+
+
 ## References
 
 - Palmgren (1981). "Models for the analysis of contingency tables with quantitative outcome variables". Biometrika, 68(3):563–576. https://www.jstor.org/stable/2335606
