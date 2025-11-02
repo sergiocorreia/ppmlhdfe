@@ -15,6 +15,7 @@
 ## Recent updates
 
 - August 2025: added [comprehensive examples](https://github.com/sergiocorreia/ppmlhdfe/blob/master/guides/nonexistence_examples.md) of how `ppmlhdfe` handles nonexistence of ML estimates, including for Logit and Multinomial Logit models
+- **Version 2.3.3 02nov2025:** minor bugfix: `predict ..., eta` and `predict ..., mu` previously didn't set the predicted values to missing for observations dropped due to separation or singletons, _if_ the call to `ppmlhdfe` had no fixed effects.
 - **Version 2.3.1 26jun2025:** minor change: add `guess(variable <varname>)`` option as an alternative initialization method
 - **Version 2.3 27jun2021:** minor changes due to reghdfe's v6 update. Currently, ppmlhdfe is still using the code from reghdfe v5, which the new version ships with. A port is planned at some point in the future, but because some Mata functions changed their behavior, this needs to be done carefully.
 - **Version 2.2 02aug2019:** major speedups due to improved IRLS acceleration (see [page 7 of the paper](https://arxiv.org/pdf/1903.01690.pdf)) and due to faster separation checks.

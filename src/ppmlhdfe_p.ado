@@ -68,6 +68,7 @@ program define ppmlhdfe_p
 		la var `varlist' "Linear prediction: xb + d[`e(absvars)']"
 	}
 	else {
+		qui replace `varlist' = . if mi(`e(d)') `ifin'
 		la var `varlist' "Linear prediction: xb"
 	}
 

@@ -110,6 +110,7 @@
 // Test postestimation
 // --------------------------------------------------------------------------
 	run predict
+	run predict_sample_bug // bugfix
 	run margins
 	
 
