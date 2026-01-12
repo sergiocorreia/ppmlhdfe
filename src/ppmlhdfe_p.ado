@@ -32,7 +32,7 @@ program define ppmlhdfe_p
 
 	loc opt `mu' `nondefault'
 	loc y `e(depvar)'
-	loc ifin `"`if' `in'"'
+	loc ifin `"`in' `if'"' // put -in- first so we can add an -if- clause later in some cases
 
 	* Default option is mu
 	if ("`opt'" == "") {
@@ -68,7 +68,10 @@ program define ppmlhdfe_p
 		la var `varlist' "Linear prediction: xb + d[`e(absvars)']"
 	}
 	else {
-		qui replace `varlist' = . if mi(`e(d)') `ifin'
+		* only include "if" when -if- is empty (we can't test against -ifin- because -in- can exist)
+		loc if_literal = cond(`"`if'"'=="", "if", "&")
+		di as error `"qui replace `varlist' = . `ifin' `if_literal' mi(`e(d)') "'
+		qui replace `varlist' = . `ifin' `if_literal' mi(`e(d)') 
 		la var `varlist' "Linear prediction: xb"
 	}
 

@@ -19,9 +19,12 @@ d KW: panel data
 d KW: separation
 d
 d Requires: Stata version 13.1
-d Required packages: ftools, reghdfe
 d
-d Author: Sergio Correia. Board of Governors of the Federal Reserve System
+d Required packages:
+d 	ftools
+d 	reghdfe
+d
+d Author: Sergio Correia. Federal Reserve Bank of Richmond
 d Support: sergio.correia@gmail.com
 d
 d Author: Paulo Guimarães. Banco de Portugal
@@ -30,7 +33,7 @@ d
 d Author: Thomas Zylkin. University of Richmond
 d Support: tzylkin@richmond.edu
 d
-d Distribution-Date: 20251102
+d Distribution-Date: 20260111
 d
 f ppmlhdfe.ado
 f ppmlhdfe_header.ado
