@@ -70,7 +70,6 @@ program define ppmlhdfe_p
 	else {
 		* only include "if" when -if- is empty (we can't test against -ifin- because -in- can exist)
 		loc if_literal = cond(`"`if'"'=="", "if", "&")
-		di as error `"qui replace `varlist' = . `ifin' `if_literal' mi(`e(d)') "'
 		qui replace `varlist' = . `ifin' `if_literal' mi(`e(d)') 
 		la var `varlist' "Linear prediction: xb"
 	}
