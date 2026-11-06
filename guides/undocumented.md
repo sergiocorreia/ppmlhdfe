@@ -41,6 +41,8 @@ Also note that all of these Mata options must be set in the form `option(value)`
 
 ### IRLS options
 
+- `use_schur(0)`: opt-in Schur projection for two or more categorical fixed effects, used in the initial collinearity check and IRLS. It eliminates the effect with the most levels, solves jointly for the remaining effects, and finishes with the usual absorption step. Default behavior is unchanged. See the [Schur projection guide](schur.md) for eligibility, safeguards, diagnostics, and reproduction.
+
 - `tolerance(1e-8)`: We achieve convergence once `epsilon < tolerance`, where `epsilon = ΔDeviance / Deviance` (with some nuances for corner cases). Thus, a `tolerance` closer to zero leads to slower but more accurate results, while higher `tolerance` can be used for quick-and-dirty regressions.
 - `use_exact_solver(0)`: whether to always use an exact least-squares solver (instead of accelerating when `itol` is within 10 of `tolerance`).
 - `use_exact_partial(0)`: every IRLS iteration partials out (z, X) instead of the equivalent-but-faster alternatives (described in the paper).

@@ -112,6 +112,15 @@
 	run predict
 	run predict_sample_bug // bugfix
 	run margins
+
+
+// --------------------------------------------------------------------------
+// Optional categorical Schur projection
+// --------------------------------------------------------------------------
+	run schur
+	run schur_collinear
+	run schur_projection
+	run schur_weighted_growth
 	
 
 
