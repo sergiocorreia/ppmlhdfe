@@ -16,13 +16,10 @@ import subprocess
 import sys
 import time
 
-CASES = (
-    "random_2", "chain_2", "disconnected_2", "random_3", "communities_3",
-    "redundant_3", "imbalanced_4", "balanced_4",
-)
-TIGHT_CASES = {"chain_2", "random_3", "communities_3", "imbalanced_4"}
-DEFAULT_CASES = {"random_2", "random_3", "imbalanced_4"}
-STRICT_TIMING_CASES = {"random_3", "communities_3", "imbalanced_4"}
+CASES = ("chain_2", "communities_3", "imbalanced_4", "balanced_4",
+         "akm_low", "akm_medium", "akm_high")
+AKM_CASES = {"akm_low", "akm_medium", "akm_high"}
+DEFAULT_CASES = {"imbalanced_4", "akm_low"}
 STRICT_OPTIONS = "tol(1e-12) use_exact_partial(1) start_inner_tol(1e-12) itol(1e-12)"
 HERE = Path(__file__).resolve().parent
 # Fixtures store N/200 firm levels as Stata int (largest nonmissing value 32740).
@@ -41,17 +38,18 @@ def arguments():
     parser.add_argument("--candidate", required=True, type=Path, help="Candidate repository root")
     parser.add_argument("--output", required=True, type=Path, help="New external artifact directory")
     parser.add_argument("--stata", type=Path, default=Path(os.environ.get("STATA", shutil.which("stata-mp") or "/Applications/Stata/StataMP.app/Contents/MacOS/stata-mp")))
-    parser.add_argument("--n", type=int, default=30000, help=f"Observations; multiple of 5000, from 10000 through {MAX_N}")
+    parser.add_argument("--n", type=int, default=100000, help=f"Observations; multiple of 5000, from 10000 through {MAX_N}")
     parser.add_argument("--repetitions", type=int, default=3)
     parser.add_argument("--processors", type=int, default=1, help="Required actual Stata processor count")
-    parser.add_argument("--controls", type=int, help="Estimate exactly K controls (0..64); omitted preserves legacy K=4 / balanced K=0")
-    parser.add_argument("--precision", choices=("case", "tight"), default="case", help="Case-specific original settings or common fully tight settings")
+    parser.add_argument("--controls", type=int, default=4, help="Estimate exactly K controls (0..64)")
+    parser.add_argument("--precision", choices=("tight",), default="tight", help="Common fully tight settings for both sources")
+    parser.add_argument("--fixture-from", type=Path, help="Reuse a verified saved fixture only; compute a fresh one-core reference")
     parser.add_argument("--reference-from", type=Path, help="Completed run with verified one-core tight references and matching N/K/sources/dependencies")
     parser.add_argument("--dependency-dir", type=Path, help="Isolated pinned ado/Mata dependencies; drivers use only BASE, this directory and the selected source")
     parser.add_argument("--candidate-revision", help="Verify candidate src against this revision in --git-repo")
     parser.add_argument("--first-source", choices=("original", "candidate"), help="Override first source block; otherwise alternate across cases")
     parser.add_argument("--candidate-label", default="candidate", help="Recorded identity; keep committed and optimized variants separate")
-    parser.add_argument("--cases", default=",".join(CASES))
+    parser.add_argument("--cases", default="balanced_4")
     parser.add_argument("--fit-timeout", type=float, default=120)
     parser.add_argument("--budget", type=float, default=600, help="Elapsed Stata-stage budget in seconds, including validation; setup/finalization add overhead")
     parser.add_argument("--upstream-revision", default="b85665d8f674e93c1e07446a9a2b29be7f797910")
@@ -71,6 +69,10 @@ def arguments():
     args.cases = args.cases.split(",")
     if len(set(args.cases)) != len(args.cases) or any(case not in CASES for case in args.cases):
         parser.error("--cases must be unique comma-separated names from " + ",".join(CASES))
+    if set(args.cases) & AKM_CASES and args.n != 200000:
+        parser.error("AKM cases require --n 200000 (20000 workers, 1000 firms, 10 years)")
+    if args.fixture_from and args.reference_from:
+        parser.error("Use either --fixture-from or --reference-from, not both")
     for name in ("original", "candidate", "output", "stata"):
         path = getattr(args, name).expanduser().resolve()
         if any(character in str(path) for character in ('"', "\n", "\r")):
@@ -80,10 +82,12 @@ def arguments():
         args.dependency_dir = args.dependency_dir.expanduser().resolve()
         if not args.dependency_dir.is_dir() or any(character in str(args.dependency_dir) for character in ('"', "\n", "\r")):
             parser.error("--dependency-dir must be an existing directory without quotes/newlines")
-    if args.reference_from is not None:
-        args.reference_from = args.reference_from.expanduser().resolve()
-        if any(character in str(args.reference_from) for character in ('"', "\n", "\r")):
-            parser.error("Paths containing double quotes or newlines are unsupported")
+    for name in ("reference_from", "fixture_from"):
+        if getattr(args, name) is not None:
+            path = getattr(args, name).expanduser().resolve()
+            if any(character in str(path) for character in ('"', "\n", "\r")):
+                parser.error("Paths containing double quotes or newlines are unsupported")
+            setattr(args, name, path)
     for path in (args.original, args.candidate):
         if not (path / "src" / "ppmlhdfe.ado").is_file():
             parser.error(f"Missing ppmlhdfe source: {path}")
@@ -146,6 +150,24 @@ def read_environment(directory, dependency_dir=None):
 
 def dependency_hashes(environment):
     return {name: item["sha256"] for name, item in environment["dependencies"].items()}
+
+
+def validate_fixture(args, manifest, source):
+    """Fixture reuse does not require a successful parent model or reference."""
+    prior = json.loads((source / "manifest.json").read_text())
+    for key in ("N", "control_count"):
+        if prior["plan"].get(key) != manifest["plan"].get(key):
+            raise RuntimeError("Fixture study differs in " + key)
+    generator = manifest["harness_sha256"]["fixtures.do"]
+    if prior["harness_sha256"].get("fixtures.do") != generator:
+        raise RuntimeError("Fixture generator differs")
+    for case in args.cases:
+        if case not in prior["plan"]["cases"]:
+            raise RuntimeError("Missing fixture case: " + case)
+        fixture = source / "fixtures" / (case + ".dta")
+        if hashlib.sha256(fixture.read_bytes()).hexdigest() != prior["fixture_sha256"].get(fixture.name):
+            raise RuntimeError("Reference fixture changed: " + case)
+    return prior
 
 
 def validate_reference(args, manifest):
@@ -360,16 +382,15 @@ def compare_fits(args, case, reference_mode, modes, deadline):
 
 def main():
     args = arguments()
-    scaling = args.processors != 1 or args.controls is not None or args.reference_from is not None
     plan = {"cases": args.cases, "N": args.n, "repetitions": args.repetitions,
             "processors": args.processors, "control_count": args.controls,
-            "controls_by_case": {case: args.controls if args.controls is not None else (0 if case == "balanced_4" else 4) for case in args.cases},
+            "controls_by_case": {case: args.controls for case in args.cases},
             "tight_reference_processors": 1, "candidate_label": args.candidate_label,
             "source_order": {case: (["original", "candidate"] if (args.first_source == "original" or (args.first_source is None and index % 2 == 0)) else ["candidate", "original"])
                              for index, case in enumerate(args.cases)},
-            "tight_cases": sorted(args.cases if scaling else set(args.cases) & TIGHT_CASES),
+            "tight_cases": sorted(args.cases),
             "default_cases": sorted(set(args.cases) & DEFAULT_CASES),
-            "precision_options": {case: STRICT_OPTIONS if args.precision == "tight" or case in STRICT_TIMING_CASES else "tol(1e-10)"
+            "precision_options": {case: STRICT_OPTIONS
                                   for case in args.cases},
             "budget_seconds": args.budget, "fit_timeout_seconds": args.fit_timeout}
     if args.dry_run:
@@ -405,11 +426,16 @@ def main():
         raise RuntimeError("Actual processor count differs from requested count")
     fixtures = args.output / "fixtures"
     fixtures.mkdir()
-    if args.reference_from:
-        prior = validate_reference(args, manifest)
+    fixture_source = args.reference_from or getattr(args, "fixture_from", None)
+    if fixture_source:
+        if args.reference_from:
+            validate_reference(args, manifest)
+        else:
+            validate_fixture(args, manifest, fixture_source)
         for case in args.cases:
-            shutil.copy2(args.reference_from / "fixtures" / (case + ".dta"), fixtures)
-        manifest["reference_from"] = {"path": str(args.reference_from), "manifest_sha256": hashlib.sha256((args.reference_from / "manifest.json").read_bytes()).hexdigest()}
+            shutil.copy2(fixture_source / "fixtures" / (case + ".dta"), fixtures)
+        key = "reference_from" if args.reference_from else "fixture_from"
+        manifest[key] = {"path": str(fixture_source), "manifest_sha256": hashlib.sha256((fixture_source / "manifest.json").read_bytes()).hexdigest()}
     else:
         generated = run_stata(args, "fixtures.do", [fixtures, args.n, max(4, args.controls or 4), " ".join(args.cases)], fixtures, deadline, "REDBENCH_FIXTURES_OK")
         if generated["status"] != "ok":
@@ -521,7 +547,7 @@ def main():
     report += ["", "All timings, failures, precision checks, source/fixture hashes, and process outcomes are retained in CSV/JSON/log files.",
                "Common precision options by case: " + json.dumps(plan["precision_options"]) + ".",
                "Tight pristine references use one processor and are untimed; every primary fit in each reference case is checked against them.",
-               "Untimed candidate use_schur(0) controls require exact equality to pristine results in selected 2FE, 3FE and 4FE cases.",
+               "Untimed candidate use_schur(0) controls require exact equality to pristine results in the imbalanced and low-mobility AKM cases.",
                "This is a bounded development benchmark; it does not establish universal speedup or release qualification.",
                "", f"Complete and validated: {summary['complete']}. Sources unchanged during run: {summary['sources_unchanged']}."]
     (args.output / "REPORT.md").write_text("\n".join(report) + "\n")

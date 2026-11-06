@@ -25,8 +25,7 @@ display "STATA_VERSION " c(stata_version) " FLAVOR " c(flavor) " PROCESSORS " c(
 use "`fixture'", clear
 local design : char _dta[design]
 local absorb "worker firm"
-if inlist("`design'","random_3","communities_3") local absorb "worker firm time"
-if "`design'"=="redundant_3" local absorb "worker firm region"
+if inlist("`design'","communities_3","akm_low","akm_medium","akm_high") local absorb "worker firm time"
 if "`design'"=="imbalanced_4" local absorb "worker firm time product"
 if "`design'"=="balanced_4" local absorb "balanced1 balanced2 balanced3 balanced4"
 local controls "x1 x2 x3 x4"

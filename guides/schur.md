@@ -91,9 +91,8 @@ controls. Floating-point results need not be bitwise identical when the option
 is enabled. Changing the absorption trajectory can change finite-tolerance
 IRLS stopping and saved-FE predictions, even when slopes and standard errors
 agree closely. For demanding prediction comparisons, use the same tighter
-settings in both paths; the benchmark documents those settings and retains
-failed ordinary-setting checks. Extremely ill-conditioned models retain the
-limitations of the reference absorption routine.
+settings in both paths; the benchmark documents those common settings. Extremely
+ill-conditioned models retain the limitations of the reference absorption routine.
 
 The outer IRLS stopping rule is unchanged. It includes an absolute floor in
 the deviance denominator, so scaling all probability weights by a very small

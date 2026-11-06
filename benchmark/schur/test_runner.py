@@ -86,6 +86,15 @@ class ArgumentValidationTests(unittest.TestCase):
                     self.parse(option + "=" + value)
                 self.assertEqual(error.exception.code, 2)
 
+    def test_akm_requires_exact_panel_size(self):
+        self.assertEqual(self.parse("--cases", "akm_low", "--n", "200000").n, 200000)
+        with self.assertRaises(SystemExit):
+            self.parse("--cases", "akm_low", "--n", "100000")
+
+    def test_fixture_and_reference_sources_are_mutually_exclusive(self):
+        with self.assertRaises(SystemExit):
+            self.parse("--fixture-from", "first", "--reference-from", "second")
+
 
 class ReferenceIntegrityTests(unittest.TestCase):
     def setUp(self):
