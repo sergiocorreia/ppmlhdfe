@@ -5,6 +5,7 @@ import hashlib
 import importlib.util
 import io
 import json
+import subprocess
 from pathlib import Path
 import tempfile
 import time
@@ -391,6 +392,71 @@ class RunnerIntegrationTests(unittest.TestCase):
                 self.assertEqual(status, 0 if damage is None else 1)
                 self.assertEqual(summary["complete"], damage is None)
                 self.assertEqual("speedup" in summary["cases"]["balanced_4"], damage is None)
+
+
+class FakeProcess:
+    def __init__(self, require_kill=False):
+        self.returncode = None
+        self.terminated = False
+        self.killed = False
+        self.require_kill = require_kill
+
+    def poll(self):
+        return self.returncode
+
+    def terminate(self):
+        self.terminated = True
+
+    def wait(self, timeout=None):
+        if self.require_kill and not self.killed:
+            raise subprocess.TimeoutExpired("fake-stata", timeout)
+        self.returncode = -9 if self.killed else -15
+        return self.returncode
+
+    def kill(self):
+        self.killed = True
+
+
+class TimeoutTests(unittest.TestCase):
+    def setUp(self):
+        self.temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temporary.cleanup)
+        self.root = Path(self.temporary.name)
+        self.args = SimpleNamespace(stata=Path("/fake/stata"), fit_timeout=1)
+        # A completion marker cannot rescue a timed-out process.
+        (self.root / "run.log").write_text("REDBENCH_START\nSUCCESS\n")
+
+    def test_expired_budget_never_starts_process(self):
+        with patch.object(runner.time, "monotonic", return_value=11), patch.object(runner.subprocess, "Popen") as start:
+            result = runner.run_stata(self.args, "fit.do", [], self.root, 10, "SUCCESS")
+        self.assertEqual(result["status"], "budget_exhausted")
+        start.assert_not_called()
+
+    def timed(self, expected, times, fit_timeout, require_kill=False):
+        self.args.fit_timeout = fit_timeout
+        process = FakeProcess(require_kill)
+        with patch.object(runner.time, "monotonic", side_effect=times), \
+                patch.object(runner.time, "sleep"), \
+                patch.object(runner.subprocess, "Popen", return_value=process), \
+                patch("sys.stdout", new_callable=io.StringIO):
+            result = runner.run_stata(self.args, "fit.do", [], self.root, 10, "SUCCESS")
+        self.assertEqual(result["status"], expected)
+        self.assertTrue(process.terminated)
+        self.assertEqual(process.killed, require_kill)
+        self.assertTrue((self.root / "process.json").exists())
+
+    def test_fit_timeout_overrides_success_marker(self):
+        self.timed("fit_timeout", [0, 0, 2, 2], 1)
+
+    def test_total_budget_overrides_success_marker(self):
+        self.timed("budget_exhausted", [0, 0, 11, 11], 20)
+
+    def test_unresponsive_process_is_killed(self):
+        self.timed("fit_timeout", [0, 0, 2, 2], 1, True)
+
+    def test_progress_stage_has_its_own_timeout(self):
+        (self.root / "stage.txt").write_text("BEGIN timed 1")
+        self.timed("fit_timeout", [0, 0, .5, 2, 2], 1)
 
 
 if __name__ == "__main__":
