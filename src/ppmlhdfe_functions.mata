@@ -256,8 +256,10 @@ mata:
 	 					 `String'		weight_type,
 	 					 `String'		weight_var,
 	 					 `Variable'		true_w,
-	 					 `Integer'		verbose)
+						 `Integer'		verbose,
+						 | `Boolean' use_schur, `RowVector' schur_stats)
 {
+	class PpmlSchur scalar schur
 	`RowVector'				ok_vars, collinear_vars
 	`StringRowVector' 		tmp_names
 	`Variables'				data
@@ -266,6 +268,8 @@ mata:
 	`Variable'				backup_weight
 	`Integer'				num_collinear
 
+	if (args()<10) use_schur = 0
+	schur_stats = J(1,3,0)
 	if (!k) return
 	if (verbose > 0) printf("{txt} $$ - Finding separated variables\n")
 	assert(rows(stdev_x)==1)
@@ -281,7 +285,12 @@ mata:
 	HDFE.tolerance = tolerance
 	// c) Partial out
 	(void) --HDFE.verbose
-	HDFE._partial_out(data=x, 0, 0, 0, 1) // don't save tss, don't standardize vars, no depvar, flush
+	if (use_schur) {
+		schur.init(HDFE)
+		schur.project(HDFE, data=x, true_w)
+		schur_stats = (schur.calls, schur.cg_iterations, schur.fallbacks)
+	}
+	else HDFE._partial_out(data=x, 0, 0, 0, 1) // no tss, standardization or depvar; flush
 	(void) ++HDFE.verbose
 	// d) Restore weights and tol
 	HDFE.load_weights(backup_weight_type, backup_weight_var, backup_weight, verbose)

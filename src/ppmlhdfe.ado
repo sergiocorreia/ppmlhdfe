@@ -335,6 +335,12 @@ program Estimate, eclass
 	ereturn local  cmd     "ppmlhdfe"
 	mata: glm.HDFE.post()
 	mata: st_numscalar("e(num_separated)", glm.num_separated)
+	mata: st_numscalar("e(schur_calls)", glm.schur_calls)
+	mata: st_numscalar("e(schur_iterations)", glm.schur_iterations)
+	mata: st_numscalar("e(schur_fallbacks)", glm.schur_fallbacks)
+	mata: st_numscalar("e(schur_col_calls)", glm.schur_collinear_calls)
+	mata: st_numscalar("e(schur_col_iters)", glm.schur_collinear_iterations)
+	mata: st_numscalar("e(schur_col_fails)", glm.schur_collinear_fallbacks)
 	mata: st_numscalar("e(N_full)", st_numscalar("e(N)") + glm.HDFE.num_singletons + glm.num_separated) // After HDFE.post()
 	_assert "`e(depvar)'" != ""
 	

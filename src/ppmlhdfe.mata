@@ -16,6 +16,9 @@
 // Include .mata files  -----------------------------------------------------
 	local GLM "class GLM scalar"
 	
+	findfile "ppmlhdfe_schur.mata"
+	include "`r(fn)'"
+
 	findfile "ppmlhdfe_functions.mata"
 	include "`r(fn)'"
 	
@@ -65,6 +68,9 @@ class GLM
 	`String'				initial_guessvar // Variable used as initial value for -mu- ; only for guess(var ...)
 	`Boolean'				standardize_data
 	`Boolean'				remove_collinear_variables
+	`Boolean'				use_schur
+	`Integer'				schur_calls, schur_iterations, schur_fallbacks
+	`Integer'				schur_collinear_calls, schur_collinear_iterations, schur_collinear_fallbacks
 	`Boolean'				use_exact_solver
 	`Boolean'				use_exact_partial
 	`Boolean'				use_heuristic_tol
@@ -118,6 +124,9 @@ class GLM
 	// Advanced estimation/solver parameters
 	remove_collinear_variables = 1
 	standardize_data = 1
+	use_schur = 0
+	schur_calls = schur_iterations = schur_fallbacks = 0
+	schur_collinear_calls = schur_collinear_iterations = schur_collinear_fallbacks = 0
 	use_exact_solver = 0
 	use_exact_partial = 0
 	use_heuristic_tol = 1
@@ -157,6 +166,7 @@ class GLM
 {
 	assert_boolean(remove_collinear_variables)
 	assert_boolean(standardize_data)
+	assert_boolean(use_schur)
 	assert_boolean(use_exact_solver)
 	assert_boolean(use_exact_partial)
 	assert_boolean(use_heuristic_tol)
@@ -232,6 +242,8 @@ class GLM
 // --------------------------------------------------------------------------
 `Void' GLM::init_variables()
 {
+	real rowvector schur_stats
+
 	if (verbose > 0) printf("\n{txt}{bf:- Loading regression variables into Mata}\n")
 	assert(++init_step == 2)
 
@@ -288,7 +300,10 @@ class GLM
 	if (remove_collinear_variables) {
 		if (verbose > 0) printf("{txt} @@ Removing collinear variables\n")
 		HDFE.varlist = HDFE.indepvars
-		remove_collinears(HDFE, target_inner_tol, x, k, stdev_x, weight_type, weight_var, true_w, verbose) // Will modify (HDFE.not_basevar, x, k, stdev_x) accordingly, and overwrite HDFE.weights
+		remove_collinears(HDFE, target_inner_tol, x, k, stdev_x, weight_type, weight_var, true_w, verbose, use_schur, schur_stats) // Will modify (HDFE.not_basevar, x, k, stdev_x) accordingly, and overwrite HDFE.weights
+		schur_collinear_calls = schur_stats[1]
+		schur_collinear_iterations = schur_stats[2]
+		schur_collinear_fallbacks = schur_stats[3]
 		HDFE.varlist = depvar, HDFE.indepvars
 	}
 }
@@ -574,7 +589,10 @@ class GLM
 	`String'		iter_text
 	`Matrix'		last_x
 	`Vector'		eps_history
+	class PpmlSchur scalar schur
 	`Real'			predicted_eps
+
+	if (use_schur) schur.init(HDFE)
 
 	// Sanity checks
 	assert(k == cols(x))
@@ -651,7 +669,14 @@ class GLM
 		if (verbose > 1) printf("{txt} @@@ HDFE._partial_out()\n")
 		_edittozerotol(data, min((tolerance, 1e-12)) ) // see test: hard2.do
 		if (iter > 1) (void) --HDFE.verbose
-		HDFE._partial_out(data, 0, 0, 0, 1) // Don't standardize vars; flush aux vectors
+		if (use_schur) {
+			schur.project(HDFE, data, irls_w)
+			schur_calls = schur_calls + schur.calls
+			schur_iterations = schur_iterations + schur.cg_iterations
+			schur_fallbacks = schur_fallbacks + schur.fallbacks
+			schur.calls = schur.cg_iterations = schur.fallbacks = 0
+		}
+		else HDFE._partial_out(data, 0, 0, 0, 1) // Don't standardize vars; flush aux vectors
 		if (iter > 1) (void) ++HDFE.verbose
 		_edittozerotol(data, min((tolerance, 1e-12)) )
 		subiter = subiter + HDFE.iteration_count
