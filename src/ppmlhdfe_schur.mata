@@ -5,7 +5,7 @@
 mata:
 class PpmlSchurGroup
 {
-    real colvector levels, order, cell_order, cell_a, cell_b, ca_order, cb_order
+    real colvector index, order, cell_order, cell_a, cell_b, ca_order, cb_order
     real matrix info, cell_info, ca_info, cb_info
     real scalar first, last
 }
@@ -45,10 +45,10 @@ void PpmlSchur::init(class FixedEffects scalar H)
         if (g==eliminated) continue
         ++j
         B = H.factors[g]
-        groups[j].levels = B.levels
         groups[j].order = B.sort((1::n))
         groups[j].info = B.info
         groups[j].first = size+1
+        groups[j].index = groups[j].first:-1:+B.levels
         size = size+B.num_levels
         groups[j].last = size
         C = join_factors(A, B, 1, 1, 1)
@@ -79,12 +79,13 @@ real matrix PpmlSchur::within(real matrix x)
 
 real matrix PpmlSchur::transpose(real matrix x)
 {
-    real matrix out
+    real matrix out, weighted_x
     real scalar g
     out = J(size,cols(x),0)
+    weighted_x = weight:*x
     for (g=1; g<=cols(groups); g++) {
         out[|groups[g].first,1 \ groups[g].last,cols(x)|] =
-            panelsum((weight:*x)[groups[g].order,.],groups[g].info)
+            panelsum(weighted_x[groups[g].order,.],groups[g].info)
     }
     return(out:/roots)
 }
@@ -98,9 +99,9 @@ real matrix PpmlSchur::multiply(real matrix v)
         return(v-panelsum((cells:*x[groups[1].cell_a,.])[groups[1].cb_order,.],groups[1].cb_info))
     }
     coefficients = v:/roots
-    x = J(n,cols(v),0)
-    for (g=1; g<=cols(groups); g++) {
-        x = x+coefficients[groups[g].first:-1:+groups[g].levels,.]
+    x = coefficients[groups[1].index,.]
+    for (g=2; g<=cols(groups); g++) {
+        x = x+coefficients[groups[g].index,.]
     }
     return(transpose(within(x)))
 }
@@ -178,7 +179,7 @@ real scalar PpmlSchur::partial_out(real matrix data, real colvector w,
     coefficients = a:/roots
     candidate = x
     for (g=1; g<=cols(groups); g++) {
-        candidate = candidate-coefficients[groups[g].first:-1:+groups[g].levels,.]
+        candidate = candidate-coefficients[groups[g].index,.]
     }
     candidate = within(candidate)
     if (hasmissing(candidate)) return(0)
