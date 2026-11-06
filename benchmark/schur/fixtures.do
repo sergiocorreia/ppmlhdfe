@@ -1,13 +1,17 @@
 * Deterministic fixtures; run once, outside every estimation timer.
 * args output_directory requested_N (a multiple of 5000, at least 10000)
-args output nobs
+args output nobs max_controls selected_cases
 version 13
 clear all
 set more off
+if "`max_controls'"=="" local max_controls 4
 display "REDBENCH_START"
 local workers = `nobs'/10
 local firms = `workers'/20
+local names "random_2 chain_2 disconnected_2 random_3 communities_3 redundant_3 imbalanced_4 balanced_4"
 forvalues design = 1/8 {
+    local name : word `design' of `names'
+    if "`selected_cases'"!="" & !strpos(" `selected_cases' "," `name' ") continue
     clear
     set seed 98241
     set obs `workers'
@@ -50,7 +54,7 @@ forvalues design = 1/8 {
     if inlist(`design',4,7) replace y = rpoisson(exp(eta))
     if `design'==4 replace y = 0 if worker<=2
 
-    * Balanced, highly connected four-way case; no covariates are estimated.
+    * Balanced four-way outcome; explicit scaling controls are zero-effect noise.
     if `design'==8 {
         forvalues block=1/4 {
             gen int balanced`block' = 1+floor(runiform()*`firms')
@@ -58,8 +62,16 @@ forvalues design = 1/8 {
         replace eta = .1*sin(balanced1)+.1*cos(balanced2)+.1*sin(balanced3)+.1*cos(balanced4)
         replace y = rpoisson(exp(eta))
     }
-    local names "random_2 chain_2 disconnected_2 random_3 communities_3 redundant_3 imbalanced_4 balanced_4"
-    local name : word `design' of `names'
+    * Add zero-effect noise controls after ALL original outcome/factor draws.
+    * This independent stream preserves x1-x4, y and topology exactly.
+    if `max_controls'>4 {
+        set seed 183271
+        forvalues column=5/`max_controls' {
+            gen double x`column' = rnormal()
+        }
+    }
+    char _dta[max_controls] "`max_controls'"
+    char _dta[extra_controls_seed] "183271"
     char _dta[design] "`name'"
     char _dta[seed] "98241"
     char _dta[requested_N] "`nobs'"

@@ -1,9 +1,14 @@
 * One source per fresh Stata process: no baseline/candidate switching in Mata.
-args source fixture output mode repetitions precision
+args source fixture output mode repetitions precision processors control_count
 version 13
 clear all
 set more off
-capture set processors 1
+if "`processors'"=="" local processors 1
+capture set processors `processors'
+if _rc | c(processors)!=`processors' {
+    display as error "Requested processors `processors' unavailable; actual " c(processors)
+    exit 198
+}
 display "REDBENCH_START"
 adopath ++ "`source'/src"
 findfile ppmlhdfe.ado
@@ -26,6 +31,17 @@ if "`design'"=="imbalanced_4" local absorb "worker firm time product"
 if "`design'"=="balanced_4" local absorb "balanced1 balanced2 balanced3 balanced4"
 local controls "x1 x2 x3 x4"
 if "`design'"=="balanced_4" local controls ""
+if "`control_count'"!="" {
+    local controls ""
+    if `control_count'>0 {
+        forvalues column=1/`control_count' {
+            confirm variable x`column'
+            local controls "`controls' x`column'"
+        }
+    }
+}
+local actual_controls : word count `controls'
+display "BENCHMARK_CONTROLS `actual_controls'"
 local weights ""
 if "`design'"=="communities_3" local weights "[pw=pweight]"
 if "`design'"=="imbalanced_4" local weights "[fw=fweight]"
@@ -49,11 +65,11 @@ display "BENCHMARK_PRECISION `precision'"
 
 tempname results
 local diagnostics "N deviance converged ic ic2 schur_calls schur_iterations schur_fallbacks schur_col_calls schur_col_iters schur_col_fails num_separated num_singletons"
-postfile `results' str24 design str10 mode str10 phase int rep int rc double seconds `diagnostics' using "`output'/timings.dta", replace
+postfile `results' str24 design str10 mode str10 phase int rep int rc double seconds processors control_count `diagnostics' using "`output'/timings.dta", replace
 tempname csv
 file open `csv' using "`output'/timings.csv", write replace
 local diagnostics_csv : subinstr local diagnostics " " ",", all
-file write `csv' "design,mode,phase,rep,rc,seconds,`diagnostics_csv'" _n
+file write `csv' "design,mode,phase,rep,rc,seconds,processors,control_count,`diagnostics_csv'" _n
 file close `csv'
 forvalues rep = `first'/`repetitions' {
     local phase = cond(`rep'==0,"warmup","timed")
@@ -79,10 +95,10 @@ forvalues rep = `first'/`repetitions' {
         if !`rc' capture scalar bench_`field' = e(`field')
         local posted "`posted' (bench_`field')"
     }
-    post `results' ("`design'") ("`mode'") ("`phase'") (`rep') (`rc') (bench_seconds) `posted'
+    post `results' ("`design'") ("`mode'") ("`phase'") (`rep') (`rc') (bench_seconds) (c(processors)) (`actual_controls') `posted'
     * Close after each row so completed fits survive a later fit timeout.
     file open `csv' using "`output'/timings.csv", write append
-    file write `csv' "`design',`mode',`phase',`rep',`rc'," (bench_seconds)
+    file write `csv' "`design',`mode',`phase',`rep',`rc'," (bench_seconds) "," (c(processors)) ",`actual_controls'"
     foreach field of local diagnostics {
         file write `csv' "," (bench_`field')
     }

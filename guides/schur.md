@@ -50,6 +50,11 @@ Neither a dense dummy matrix nor a dense Schur matrix is constructed. With two
 effects, multiplication uses coalesced cells and the normalized `I - C'C`
 operator. With three or more effects, each multiplication predicts the sum of
 retained effects, demeans within `A`, and aggregates to every retained block.
+Retained observation indices are cached when grouping is built. Each transpose
+weights its input once, and each multiway prediction starts from the first retained
+block before adding the others. These reuse changes leave the operator and
+acceptance checks unchanged.
+
 The system may be singular because of component constants or redundant effects;
 only the projected residual is needed, not uniquely identified FE coefficients.
 
